@@ -21,8 +21,8 @@ What is an assumption and still to be decided (marked "ASSUMPTION" below):
     `multiplier * T`, with multiplier in [0.5, 2] (WBS 6.4, K0-K3 ablation).
   - Hard vs easy question: BKT has no difficulty, so a hard question halves G
     and raises S by 1.5x.
-  - Multiple-choice G/S for exercises will come from Eedi NeurIPS (WBS 5.5);
-    until then the short-answer values are used for exercises as well.
+  - Exercises (multiple choice) use Eedi NeurIPS G/S (WBS 5.5); tests (short
+    answer) use ASSISTments G/S. L0 and T come from ASSISTments only.
   - No misconception layer yet (FR-15, planned for semester 2): `answer()`
     returns None as the misconception, so the env keeps feedback masked.
   - Skills learn independently (standard BKT); prerequisites only act through
@@ -50,10 +50,18 @@ ASSISTMENTS_BKT_PARAMS: tuple[BKTParams, ...] = (
     BKTParams(l0=0.608, t=0.015, g=0.424, s=0.202),  # S6 Fraction-Decimal-Percent
 )
 
-# Multiple-choice G/S per skill: (g, s). None = not yet available (WBS 5.5).
-# S2 has an ASSISTments mc fit (g=0.522, s=0.096) but G > 0.5 fails the sanity
-# check, so it is not used; Eedi values will replace this table.
-MC_GUESS_SLIP: tuple[tuple[float, float] | None, ...] = (None,) * NUM_SKILLS
+# Multiple-choice G/S per skill: (g, s), used for exercise items (teaching is
+# multiple choice). From Eedi NeurIPS 2020 task 1-2 (WBS 5.5, 24 Nov 2026;
+# src/data_prep/eedi_neurips_guess_slip.py, pyBKT on <= 60k answers per skill).
+# The ASSISTments S2 mc fit (g=0.522) is not used: G > 0.5 fails the sanity check.
+MC_GUESS_SLIP: tuple[tuple[float, float] | None, ...] = (
+    (0.401, 0.146),  # S1
+    (0.394, 0.175),  # S2
+    (0.386, 0.141),  # S3
+    (0.386, 0.135),  # S4
+    (0.389, 0.157),  # S5
+    (0.421, 0.132),  # S6
+)
 
 
 # --- Student types (ASSUMPTION, proposal) -------------------------------------

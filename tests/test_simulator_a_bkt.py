@@ -45,14 +45,25 @@ def test_unknown_profile_rejected():
 
 
 def test_answer_rate_matches_bkt_for_unlearned_student():
-    # never learns (T=0 via slow profile override) -> P(correct) = G
-    sim = SimulatorA(profile="average")
+    # never learns (T=0) -> P(correct) = G; short-answer G when no mc table is given
+    sim = SimulatorA(profile="average", mc_guess_slip=(None,) * NUM_SKILLS)
     sim.reset(seed=3)
     sim._learned[:] = 0.0
     sim._params = tuple(p.__class__(l0=p.l0, t=0.0, g=p.g, s=p.s) for p in sim._params)
     n = 4000
     rate = np.mean([sim.answer(0, "easy_question")[0] for _ in range(n)])
     assert abs(rate - ASSISTMENTS_BKT_PARAMS[0].g) < 0.03
+
+
+def test_exercises_use_multiple_choice_guess():
+    from src.core.simulator_a_bkt import MC_GUESS_SLIP
+
+    sim = SimulatorA(profile="average")
+    sim.reset(seed=3)
+    sim._learned[:] = 0.0
+    sim._params = tuple(p.__class__(l0=p.l0, t=0.0, g=p.g, s=p.s) for p in sim._params)
+    rate = np.mean([sim.answer(0, "easy_question")[0] for _ in range(4000)])
+    assert abs(rate - MC_GUESS_SLIP[0][0]) < 0.03
 
 
 def test_hard_question_is_harder():
