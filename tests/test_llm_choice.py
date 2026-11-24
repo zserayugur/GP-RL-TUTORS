@@ -3,6 +3,8 @@ from pathlib import Path
 import unittest
 from src.core.llm_choice import resolve_choice
 from src.core.llm_student import answer_question
+import os
+from src.core.ollama_client import ask_ollama
 
 def database():
     con = sqlite3.connect(":memory:")
@@ -68,5 +70,18 @@ class ChoiceTests(unittest.TestCase):
             fake_model,
             order="CABD",
         )
+        self.assertEqual(result.canonical_label, "C")
+        self.assertIs(result.correct, True)
+
+    @unittest.skipUnless(os.getenv("RUN_OLLAMA_TEST") == "1", "Ollama testi isteğe bağlı")
+    def test_student_with_real_ollama(self):
+        result = answer_question(
+        self.db,
+        1,
+        "2/4 hangi kesre eşittir?",
+        {"A": "1/4", "B": "1/3", "C": "1/2", "D": "3/4"},
+        ask_ollama,
+        order="CABD",
+    )
         self.assertEqual(result.canonical_label, "C")
         self.assertIs(result.correct, True)
