@@ -2,6 +2,29 @@
 
 En yeni kayıt en üstte.
 
+## 2026-11-24 — Soru bankası iskeleti (WBS 5.2, ilk adım)
+
+- **Ne yapıldı:**
+  - TÜBİTAK metnindeki alanlarla SQLite şeması yazıldı: `src/data_prep/item_bank_schema.sql`. Tablolar: beceriler, yanılgılar, sorular, şıklar, anlık görüntüler. Şemada öğretim ve test havuzları ayrı (FR-06), her yanlış şık bir yanılgıya bağlanabiliyor (FR-07), içerik onay durumları var (FR-11) ve sürümlü anlık görüntü alınabiliyor (FR-12).
+  - Kurulum betiği yazıldı: `src/data_prep/build_item_bank.py`. Eedi'deki 103 kesir sorusunu şıkları ve yanılgılarıyla yüklüyor. Görselli sorular işaretli kalıyor; `usable_items` görünümüne girmiyor.
+  - Veritabanı `data/interim/item_bank.sqlite` konumunda, Git'te değil (Eedi metinleri içeriyor).
+- **Sonuç:** 87 kullanılabilir soru ve 101 yanılgı yüklendi. 20 öğretim sorusuna ulaşmak için eksikler: S1'de 17, S2'de 12, S4'te 8, S5'te 8 soru.
+- **Ekibin dolduracakları:**
+  - Kullanılabilir sorulardaki 261 yanlış şıktan 60'ında yanılgı etiketi yok; onaylı metne göre her yanlış şık bir yanılgıya bağlanmalı.
+  - Her sorunun zorluğu (kolay/zor); ortamdaki "kolay soru" ve "zor soru" eylemleri buna dayanıyor.
+  - İpucu, çözümlü örnek ve açıklama metinleri.
+  - Kısa cevaplı ön ve son test havuzu (beceri başına en az 8 soru).
+- **Sıradaki adım:** 25 Kasım'da eksik soruların nasıl tamamlanacağına karar verilmesi.
+
+## 2026-11-24 — Veri kaynakları ve lisans kaydı (NFR-06)
+
+- **Ne yapıldı:** Elifnaz'ın "`.gitignore` kontrolü lisans uyumunu tek başına doğrulamaz" yorumu üzerine `doc/veri_kaynaklari.md` yazıldı. Dört kaynağın (ASSISTments, Eedi Kaggle, Eedi NeurIPS, OpenStax) adresi, lisansı ve projede nasıl kullanıldığı kayıt altında.
+- **Bulgular:**
+  - ASSISTments'ın açık bir lisansı yok, kullanım koşulları var: veri başkasına verilmez, kod açık olmalı, atıf yapılmalı.
+  - Eedi NeurIPS lisansı **doğrulanamadı**. Resmî sayfa açılmadı; bir arama sonucu CC BY-NC-ND 4.0 diyor.
+- **Açık nokta:** Eedi NeurIPS lisansı doğrulanana kadar task 3-4 soru resimleri soru bankasında kullanılmamalı.
+- **Kimi etkiliyor:** İrem — NFR-06'nın doğrulama yöntemi "`.gitignore` + `doc/veri_kaynaklari.md`" olarak güncellenebilir.
+
 ## 2026-11-24 — Eedi NeurIPS: çoktan seçmeli G/S ve çeldirici olasılıkları (WBS 5.5)
 
 - **Ne yapıldı:** `src/data_prep/eedi_neurips_guess_slip.py` yazıldı. Eedi NeurIPS 2020 task 1-2'den 1.513 kesir sorusu ve 1,18 milyon cevap alındı. Beceri başına en fazla 60.000 cevaplık öğrenci örneğiyle pyBKT çalıştırıldı. Veri Git'te değil, çıktılar `data/interim/` klasöründe.
