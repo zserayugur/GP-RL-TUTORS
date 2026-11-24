@@ -8,6 +8,7 @@ An RL-based tutoring system for studying policy generalization across different 
 - `doc/` – Project documentation
 - `ref/` – Research papers, reports, and references
 - `log/` – Meeting notes, progress, risks, and decisions
+  - `log/worklog/` – Team work log: each member adds what they did to their own file (see its README)
 - `data/` – Project data
 - `models/` – AI models and related files
 - `ai/` – AI-related prompts, plans, task templates, and generated records
