@@ -73,6 +73,27 @@ class ChoiceTests(unittest.TestCase):
         self.assertEqual(result.canonical_label, "C")
         self.assertIs(result.correct, True)
 
+    def test_student_passes_persona_to_model(self):
+        persona = "Kesirleri toplarken payları ve paydaları ayrı ayrı toplarsın."
+
+        def fake_model(text):
+            self.assertIn(f"Öğrenci rolü: {persona}", text)
+            return "A"
+
+        result = answer_question(
+            self.db,
+            1,
+            "1/2 + 1/3 kaçtır?",
+            {"A": "2/5", "B": "1/5", "C": "5/6", "D": "2/6"},
+            fake_model,
+            order="CABD",
+            persona=persona,
+        )
+
+        self.assertEqual(result.canonical_label, "C")
+        self.assertIs(result.correct, True)    
+        
+
     @unittest.skipUnless(os.getenv("RUN_OLLAMA_TEST") == "1", "Ollama testi isteğe bağlı")
     def test_student_with_real_ollama(self):
         result = answer_question(

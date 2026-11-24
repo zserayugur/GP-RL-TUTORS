@@ -12,8 +12,10 @@ def answer_question(
     options: Mapping[str, str],
     model: Callable[[str], str],
     order: str = "ABCD",
+    *,
+    persona: str | None = None,
 ) -> Choice:
     """Send the question text to the model and score its displayed choice."""
-    prompt = prepare_prompt(question, options, order)
+    prompt = prepare_prompt(question, options, order, persona=persona)
     reply = model(prompt.text)
     return resolve_choice(db, item_id, prompt.order, reply)

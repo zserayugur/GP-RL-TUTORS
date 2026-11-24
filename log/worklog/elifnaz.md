@@ -12,3 +12,5 @@ En yeni kayıt en üstte. Biçim için `README.md` dosyasına bak.
 - LLM’ye gönderilecek soru ve şıkları hazırlayan fonksiyon eklendi. Cevap anahtarı modele gönderilmiyor, şık sırası eşleme için ayrı saklanıyor. Prompt ve şık eşleme testleri yerelde geçti.
 - Sahte modelle soru hazırlama ve şık eşleme birlikte doğrulandı; 8 test geçti.
 - Yerel Ollama ve Qwen3 4B ile soru hazırlama, model yanıtı ve şık eşleme akışı uçtan uca doğrulandı. Gerçek model testi dahil 9 test geçti.
+- qwen3:4b ile yapılan tek soruluk manuel pilotta, aynı soru ve şık sırası korunarak iki ayrı oturum çalıştırıldı. Normal öğrenci istemi B (5/6), payları ve paydaları ayrı ayrı toplayan öğrenci istemi A (2/5) üretti.
+- LLM öğrenciye isteğe bağlı persona parametresi eklendi. Sahte modelle yapılan test, profilin modele iletildiğini ve karıştırılmış şıkların doğru eşlendiğini doğruladı. Yerel çalıştırmada 9 test geçti, isteğe bağlı Ollama testi atlandı.

@@ -12,6 +12,8 @@ def prepare_prompt(
     question: str,
     options: Mapping[str, str],
     order: str = "ABCD",
+    *,
+    persona: str | None = None,
 ) -> PreparedPrompt:
     """Soruyu ve şıkları hazırlar; ekrandaki sırayı ayrıca saklar."""
     if set(options) != set("ABCD"):
@@ -23,7 +25,12 @@ def prepare_prompt(
         f"{displayed}) {options[original]}"
         for displayed, original in zip("ABCD", order)
     )
+
+    role = persona.strip() if persona is not None else ""
+    role_text = f"Öğrenci rolü: {role}\n\n" if role else ""
+
     text = (
+        f"{role_text}"
         "Soruyu cevapla. Yalnızca A, B, C veya D harfini yaz.\n\n"
         f"Soru: {question}\n"
         f"{displayed_options}"
