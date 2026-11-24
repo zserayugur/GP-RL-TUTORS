@@ -2,6 +2,12 @@
 
 En yeni kayıt en üstte.
 
+## 2026-11-24 — Literatür notları (BKT ve simülatörler)
+
+- **Ne yapıldı:** `ref/papers/notlar/seray_notlar.md` yazıldı. Notlar İngilizce ve hocanın istediği "önceki çalışma – sınırlılık – katkı" düzeninde. Kapsanan makaleler: Corbett & Anderson 1994 (BKT), Badrinath ve ark. 2021 (pyBKT), Käser & Alexandron 2024 (simüle öğrenciler); isteğe bağlı olarak Doroudi ve ark. 2017 (REM).
+- **Dayanak:** Seray'ın 2.2–2.3 taslağı ve bugünkü sonuçlarımız. Künyeler onaylı kaynakçadan alındı. Her notta tam metinden doğrulanması gereken noktalar "Check while reading" satırında yazıyor.
+- **Kimi etkiliyor:** Background bölümünü yazacak olan herkes.
+
 ## 2026-11-24 — Soru bankası iskeleti (WBS 5.2, ilk adım)
 
 - **Ne yapıldı:**
