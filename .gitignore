@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Raw data must stay in the shared Drive, not in Git (see OKU_BENI.txt).
+data/raw/*
+!data/raw/.gitkeep
+data/interim/*
+!data/interim/.gitkeep
+
+models/checkpoints/*
+!models/checkpoints/.gitkeep
+models/exported/*
+!models/exported/.gitkeep
