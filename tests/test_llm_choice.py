@@ -2,7 +2,7 @@ import sqlite3
 from pathlib import Path
 import unittest
 from src.core.llm_choice import resolve_choice
-
+from src.core.llm_student import answer_question
 
 def database():
     con = sqlite3.connect(":memory:")
@@ -54,3 +54,19 @@ class ChoiceTests(unittest.TestCase):
     def test_order(self):
         with self.assertRaises(ValueError):
             resolve_choice(self.db, 1, 'AACD', 'A')
+            
+    def test_student_scores_displayed_choice(self):
+        def fake_model(text):
+            self.assertIn("A) c", text)
+            return "A"
+
+        result = answer_question(
+            self.db,
+            1,
+            "Test fixture",
+            {"A": "a", "B": "b", "C": "c", "D": "d"},
+            fake_model,
+            order="CABD",
+        )
+        self.assertEqual(result.canonical_label, "C")
+        self.assertIs(result.correct, True)
