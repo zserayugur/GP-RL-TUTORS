@@ -26,6 +26,8 @@ from typing import Any, Protocol
 import numpy as np
 from gymnasium import Env, spaces
 
+from .bkt_tracker import BKTParams, BKTTracker
+
 NUM_SKILLS = 6
 ACTIONS_PER_SKILL = 6
 FINISH_ACTION = NUM_SKILLS * ACTIONS_PER_SKILL  # 36
@@ -58,6 +60,16 @@ ACTION_COST = {
 
 LAMBDA_COST = 0.003  # cost coefficient, rescaled for H=60 (team decision, 18 Kasim)
 
+# Skill graph (Seray, Beceri_Grafigi_ve_UseCase_v2): S1=0 .. S6=5.
+# S1 -> S2, S3, S6 ; S4 -> S5. S1 and S4 are root skills (no prerequisite).
+SKILL_PREREQS: dict[int, tuple[int, ...]] = {
+    1: (0,),  # S2 <- S1
+    2: (0,),  # S3 <- S1
+    5: (0,),  # S6 <- S1
+    4: (3,),  # S5 <- S4
+}
+PREREQ_MASTERY_THRESHOLD = 0.6  # team proposal (Karar Dokumani Gozlem/Eylem/Odul); pending hoca confirmation
+
 
 @dataclass
 class HiddenState:
@@ -78,10 +90,6 @@ class StudentModel(Protocol):
         """Returns (is_correct, misconception_class_or_None)."""
         ...
 
-    def estimated_mastery(self) -> np.ndarray:
-        """BKT/PFA tracker's *estimated* mastery per skill (observable, not ground truth)."""
-        ...
-
 
 class FractionTutorEnv(Env):
     """RL environment for selecting the next tutoring action across 6 fraction skills."""
@@ -96,6 +104,7 @@ class FractionTutorEnv(Env):
         min_steps_before_finish: int = MIN_STEPS_BEFORE_FINISH,
         last_n_answers: int = LAST_N_ANSWERS_DEFAULT,
         num_misconception_classes: int = NUM_MISCONCEPTION_CLASSES,
+        bkt_params: BKTParams | list[BKTParams] | None = None,
     ) -> None:
         super().__init__()
         self.student_model = student_model
@@ -104,6 +113,10 @@ class FractionTutorEnv(Env):
         self.min_steps_before_finish = min_steps_before_finish
         self.last_n_answers = last_n_answers
         self.num_misconception_classes = num_misconception_classes
+        # Policy-side BKT tracker (FR-34): estimates mastery from observed
+        # correctness only, identically regardless of which simulator (A/B/C)
+        # is behind the env. Never reads simulator-internal state.
+        self._bkt_tracker = BKTTracker(NUM_SKILLS, bkt_params)
 
         self.action_space = spaces.Discrete(NUM_ACTIONS)
         self.observation_space = spaces.Box(
@@ -121,12 +134,14 @@ class FractionTutorEnv(Env):
         # ring buffer of (skill, correct, misconception_class_or_-1)
         self._answer_history: list[tuple[int, bool, int]] = []
         self._post_test_score: float | None = None
+        self._last_action: tuple[int, str] | None = None
 
     # -- Gymnasium API --------------------------------------------------
 
     def reset(self, *, seed: int | None = None, options: dict | None = None):
         super().reset(seed=seed)
         self._hidden = self.student_model.reset(seed=seed)
+        self._bkt_tracker.reset()
         self._step_count = 0
         self._correct_counts[:] = 0
         self._incorrect_counts[:] = 0
@@ -136,6 +151,7 @@ class FractionTutorEnv(Env):
         self._current_misconception[:] = -1
         self._answer_history.clear()
         self._post_test_score = None
+        self._last_action = None
         return self._build_observation(), {}
 
     def step(self, action: int):
@@ -159,6 +175,7 @@ class FractionTutorEnv(Env):
             is_exercise = action_name in ("easy_question", "hard_question")
             if is_exercise:
                 is_correct, misconception = self.student_model.answer(skill, action_name)
+                self._bkt_tracker.update(skill, is_correct)
                 self._steps_since_last_exercise = 0
                 if is_correct:
                     self._correct_counts[skill] += 1
@@ -171,6 +188,8 @@ class FractionTutorEnv(Env):
                 self._record_answer(skill, is_correct, self._current_misconception[skill])
             else:
                 self._steps_since_last_exercise += 1
+
+            self._last_action = (skill, action_name)
 
         truncated = self._step_count >= self.max_steps
         if truncated and not terminated:
@@ -185,14 +204,42 @@ class FractionTutorEnv(Env):
         return self._build_observation(), reward, terminated, truncated, {}
 
     def action_masks(self) -> np.ndarray:
-        """Boolean validity mask of length NUM_ACTIONS, for sb3-contrib MaskablePPO."""
+        """Boolean validity mask of length NUM_ACTIONS, for sb3-contrib MaskablePPO.
+
+        Masks only ever read observable information (the BKT tracker's estimated
+        mastery, the last outstanding wrong answer, the last action taken) -
+        never the hidden state. Source: Karar Dokumani (Gozlem/Eylem/Odul), 2.
+        """
         mask = np.ones(NUM_ACTIONS, dtype=bool)
         mask[FINISH_ACTION] = self._step_count >= self.min_steps_before_finish
-        # TODO (domain masks, pending content/BKT-tracker wiring):
-        #  - mask a skill's actions when its prerequisite skill is not yet mastered
-        #  - mask misconception_feedback when there is no outstanding wrong answer
-        #  - mask short_lecture repeated back-to-back for the same skill
-        #  - mask redundant repetition of an already-mastered skill
+
+        estimated_mastery = self._bkt_tracker.estimate()
+        misconception_feedback_idx = ACTION_NAMES.index("misconception_feedback")
+        short_lecture_idx = ACTION_NAMES.index("short_lecture")
+
+        for skill in range(NUM_SKILLS):
+            base = skill * ACTIONS_PER_SKILL
+
+            # Prerequisite mask: block the whole skill if any prerequisite's
+            # BKT-tracker estimate is below threshold (0,6, team proposal).
+            prereqs = SKILL_PREREQS.get(skill, ())
+            if any(estimated_mastery[p] < PREREQ_MASTERY_THRESHOLD for p in prereqs):
+                mask[base : base + ACTIONS_PER_SKILL] = False
+                continue
+
+            # Misconception feedback only valid with an outstanding wrong answer
+            # tied to a known misconception for this skill.
+            if self._current_misconception[skill] < 0:
+                mask[base + misconception_feedback_idx] = False
+
+        # No repeating short_lecture back-to-back on the same skill.
+        if self._last_action is not None:
+            last_skill, last_action_name = self._last_action
+            if last_action_name == "short_lecture":
+                mask[last_skill * ACTIONS_PER_SKILL + short_lecture_idx] = False
+
+        # TODO: mask an action once its item-bank pool is exhausted for a
+        # skill/difficulty (needs WBS 5.2 item bank; not available yet).
         return mask
 
     # -- Hidden state: deliberately NOT exposed via reset()/step() ------
@@ -213,7 +260,7 @@ class FractionTutorEnv(Env):
         blocks: list[np.ndarray] = []
 
         blocks.append(np.array([self.pretest_score], dtype=np.float32))  # 1
-        blocks.append(self.student_model.estimated_mastery().astype(np.float32))  # 6 (observable BKT estimate, not ground truth)
+        blocks.append(self._bkt_tracker.estimate().astype(np.float32))  # 6 (FR-34: policy-side BKT tracker, not ground truth)
 
         denom = max(self._step_count, 1)
         blocks.append((self._correct_counts / denom).astype(np.float32))  # 6

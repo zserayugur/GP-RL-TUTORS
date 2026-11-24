@@ -71,11 +71,11 @@ v4'te kabul edilmiştir (FR-38, FR-39); NFR-13 hâlâ öneri durumunda.
 |---|---|---|---|---|---|
 | FR-18 | Gymnasium arayüzü (reset/step) | RQ1 | 7.1 | — | 1 |
 | FR-19 | Eylem uzayı Discrete(37) | RQ1, H5 | 7.1, 6.4* | UC-03 | 1–2 |
-| FR-20 | Eylem maskesi | RQ1 | 7.1 | UC-03 | 1 |
+| FR-20 | Eylem maskesi — **uygulandı** (ön koşul eşiği 0,6; yanılgı geri bildirimi; tekrarlayan konu anlatımı) | RQ1 | 7.1 | UC-03 | 1 |
 | FR-21 | Gözlem vektörü (143 boyut, Elifnaz'ın formal tanımı esas) | RQ1, RQ2 | 7.1 | UC-02, UC-03 | 1 |
 | FR-22 | Ödül (beklenen kazanç − maliyet) **— onaylandı (hoca, 24 Kasım)** | RQ1 | 7.1, 8.4* | — | 1 |
 | FR-33 | Oturum adım kaydı | RQ1 (analiz) | 7.3*, 9.1* | UC-03, UC-07 | 1 |
-| FR-34 | Politika tarafı BKT izleyicisi | RQ1, RQ2 | 7.1* (6.1 param.) | UC-03 | 1 |
+| FR-34 | Politika tarafı BKT izleyicisi — **uygulandı**: `src/core/bkt_tracker.py`, yalnızca gözlenen cevaplardan hesaplıyor (simülatör içi duruma erişmiyor); L0/T/G/S değerleri WBS 6.1 (Seray, pyBKT) tamamlanana kadar yer tutucu | RQ1, RQ2 | 7.1* (6.1 param.) | UC-03 | 1 |
 | FR-38 | Oturum bitişi: "bitir" veya H adım → son test. **Kabul edildi, H = 60** (ekip kararı, 18 Kasım) | RQ1 | 7.1 | UC-03, UC-04 | 1 |
 
 ### Politikalar, deneyler ve analiz

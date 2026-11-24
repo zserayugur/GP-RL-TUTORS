@@ -19,7 +19,6 @@ class FakeStudentModel:
 
     def __init__(self, always_correct: bool = True):
         self.always_correct = always_correct
-        self._mastery = np.full(NUM_SKILLS, 0.4, dtype=np.float32)
 
     def reset(self, seed=None) -> HiddenState:
         return HiddenState(
@@ -33,12 +32,15 @@ class FakeStudentModel:
         correct = self.always_correct
         return correct, None if correct else 1
 
-    def estimated_mastery(self) -> np.ndarray:
-        return self._mastery
-
 
 def make_env(**kwargs) -> FractionTutorEnv:
     return FractionTutorEnv(student_model=FakeStudentModel(), **kwargs)
+
+
+def set_tracker_belief(env: FractionTutorEnv, skill: int, value: float) -> None:
+    """Test-only helper: force the policy-side BKT tracker's belief for a skill
+    (white-box setup, since the tracker only updates from observed answers)."""
+    env._bkt_tracker._belief[skill] = value
 
 
 def test_action_space_is_37():
@@ -128,16 +130,16 @@ def test_hidden_state_not_in_step_observation_or_info():
 
 
 def test_hidden_state_fields_disjoint_from_observable_mastery():
-    """The observation must carry the *estimated* (BKT-tracker) mastery,
-    never the ground-truth hidden mastery used to generate it."""
+    """The observation must carry the *tracker-estimated* mastery (FR-34),
+    never the ground-truth hidden mastery used by the simulator."""
     env = make_env()
-    env.reset(seed=0)
     obs, _ = env.reset(seed=0)
     hidden = env.hidden_state
-    # FakeStudentModel deliberately sets true_mastery (0.9) != estimated_mastery (0.4)
-    assert not np.allclose(hidden.true_mastery, env.student_model.estimated_mastery())
+    tracker_estimate = env._bkt_tracker.estimate()
+    # HiddenState.true_mastery (0.9) differs from the tracker's prior (L0=0.3)
+    assert not np.allclose(hidden.true_mastery, tracker_estimate)
     block_b = obs[1 : 1 + NUM_SKILLS]
-    assert np.allclose(block_b, env.student_model.estimated_mastery())
+    assert np.allclose(block_b, tracker_estimate)
     assert not np.allclose(block_b, hidden.true_mastery)
 
 
@@ -147,3 +149,71 @@ def test_hidden_state_dataclass_fields_not_public_env_attributes():
     hidden_fields = {f.name for f in dataclasses.fields(HiddenState)}
     public_env_attrs = {name for name in vars(env) if not name.startswith("_")}
     assert hidden_fields.isdisjoint(public_env_attrs)
+
+
+# -- Policy-side BKT tracker (FR-34) -------------------------------------
+
+def test_bkt_tracker_updates_from_observed_answers_only():
+    """The tracker must move on correct/incorrect answers alone - it never
+    reads the simulator's hidden state, so it works identically for Simulator
+    C (LLM), which has no internal P(L)."""
+    env = make_env()
+    env.reset(seed=0)
+    before = env._bkt_tracker.estimate()[0]
+    env.step(0)  # S1 easy_question, FakeStudentModel always answers correctly
+    after = env._bkt_tracker.estimate()[0]
+    assert after > before  # belief increases after an observed correct answer
+
+
+# -- Domain masks (Karar Dokumani: Gozlem/Eylem/Odul) --------------------
+
+def test_prerequisite_mask_blocks_dependent_skill_below_threshold():
+    env = make_env()
+    env.reset(seed=0)
+    set_tracker_belief(env, 0, 0.4)  # S1 below 0.6 threshold
+    mask = env.action_masks()
+    # S2 (skill index 1) depends on S1 -> fully masked
+    assert not mask[1 * 6 : 1 * 6 + 6].any()
+    # S1 itself (no prerequisite) stays available
+    assert mask[0 * 6 : 0 * 6 + 6].any()
+
+
+def test_prerequisite_mask_opens_dependent_skill_once_threshold_met():
+    env = make_env()
+    env.reset(seed=0)
+    set_tracker_belief(env, 0, 0.7)  # S1 above 0.6 threshold
+    mask = env.action_masks()
+    # S2 open except misconception_feedback (no outstanding wrong answer yet)
+    assert mask[1 * 6 : 1 * 6 + 5].all()
+    assert mask[1 * 6 + 5] == False
+
+
+def test_misconception_feedback_masked_without_outstanding_wrong_answer():
+    env = make_env()
+    env.reset(seed=0)
+    set_tracker_belief(env, 0, 0.9)
+    mask = env.action_masks()
+    misconception_feedback_action = 0 * 6 + 5  # skill 0, misconception_feedback
+    assert mask[misconception_feedback_action] == False
+
+
+def test_misconception_feedback_opens_after_wrong_answer():
+    env = FractionTutorEnv(student_model=FakeStudentModel(always_correct=False))
+    env.reset(seed=0)
+    set_tracker_belief(env, 0, 0.9)
+    env.step(0)  # S1 easy_question -> wrong answer, misconception recorded
+    mask = env.action_masks()
+    misconception_feedback_action = 0 * 6 + 5
+    assert mask[misconception_feedback_action] == True
+
+
+def test_short_lecture_cannot_repeat_back_to_back():
+    env = make_env()
+    env.reset(seed=0)
+    set_tracker_belief(env, 0, 0.9)
+    short_lecture_action = 0 * 6 + 4  # skill 0, short_lecture
+    env.step(short_lecture_action)
+    mask = env.action_masks()
+    assert mask[short_lecture_action] == False
+    # a different action on the same skill is still fine
+    assert mask[0 * 6 + 0] == True
