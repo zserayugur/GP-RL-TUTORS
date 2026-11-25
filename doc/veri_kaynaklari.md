@@ -10,7 +10,7 @@ Genel kural: **Ham veri ve ondan türetilen satır düzeyindeki dosyalar Git'e k
 |---|---|---|---|---|
 | ASSISTments 2009–2010 Skill Builder | BKT L0, T ve kısa cevap G/S (WBS 6.1) | Açık lisans adı yok; ASSISTments kullanım koşulları geçerli | Koşullar resmî sayfadan okundu (24.11.2026) | Hayır |
 | Eedi "Mining Misconceptions in Mathematics" (Kaggle) | Soru metinleri, çeldiriciler, yanılgı etiketleri (WBS 5.4, 5.2) | CC BY-NC 4.0 ve yarışma kuralları; yeniden dağıtılamaz | Onaylı TÜBİTAK metninde [23]; Kaggle'da kurallar kabul edildi | Hayır |
-| Eedi NeurIPS 2020 Education Challenge | Çoktan seçmeli G/S, çeldirici olasılıkları (WBS 5.5), FR-40 karşılaştırması | **Doğrulanmadı** (aşağıya bkz.) | Resmî sayfa açılamadı | Hayır |
+| Eedi NeurIPS 2020 Education Challenge | Çoktan seçmeli G/S, çeldirici olasılıkları (WBS 5.5), FR-40 karşılaştırması | CC BY-NC-ND 4.0; soru resimleri ayrıca kısıtlı | Resmî sayfadan doğrulandı (25.11.2026) | Hayır |
 | OpenStax Prealgebra 2e, kesirler bölümü | Kısa konu anlatımları | CC BY-NC-SA 4.0 | Onaylı TÜBİTAK metninde [35] | Türetilen metinler aynı lisansla girebilir |
 
 ## 1. ASSISTments 2009–2010 Skill Builder
@@ -41,12 +41,18 @@ Genel kural: **Ham veri ve ondan türetilen satır düzeyindeki dosyalar Git'e k
 
 - **İndirme adresi:** https://dqanonymousdata.blob.core.windows.net/neurips-public/data.zip
 - **Belge:** Wang ve ark. 2020, "Instructions and Guide for Diagnostic Questions: The NeurIPS 2020 Education Challenge", arXiv:2007.12061 (onaylı metinde [25]).
-- **Lisans: DOĞRULANMADI.**
-  - Zip dosyasının içinde lisans dosyası yok.
-  - Eedi'nin yarışma sayfası (eedi.com/projects/neurips-education-challenge) 24.11.2026'da açılamadı (404).
-  - Bir arama sonucu, bu sayfada verinin **CC BY-NC-ND 4.0** ile lisanslandığının yazdığını belirtiyor; ama bunu sayfanın kendisinden göremedik.
-- **Projedeki kullanım:** `src/data_prep/eedi_neurips_guess_slip.py` (WBS 5.5). Yalnızca sayısal özetler (G/S, çeldirici olasılıkları) kullanılıyor.
-- **Dikkat:** Lisans gerçekten "NoDerivatives" (ND) ise, `data/images/` içindeki soru resimlerini metne çevirip soru bankasına koymak türev eser sayılabilir. **Lisans doğrulanmadan bu resimler soru bankasında kullanılmamalı.** Doğrulama için Eedi'ye ya da danışmana sorulabilir.
+- **Resmî sayfa:** https://www.eedischool.com/projects/neurips-education-challenge (25.11.2026'da okundu; eski eedi.com adresi 404 veriyor).
+- **Lisans:** CC BY-NC-ND 4.0 (Atıf – Gayriticari – Türetilemez). Sayfadaki koşullar:
+  - Ticari amaçla kullanılamaz.
+  - Veri değiştirilir, dönüştürülür ya da üzerine bir şey inşa edilirse, değiştirilmiş hâli dağıtılamaz.
+  - Atıf verilir, lisansa bağlantı konur ve değişiklik yapıldıysa belirtilir.
+  - **Soru resimleri için ek kısıt:** Resimler yalnızca model eğitimi amacıyla paylaşılmıştır, başka bir amaçla kullanılamaz, basılamaz ve kimseyle paylaşılamaz.
+- **Atıf:** Sayfa, Wang ve ark. 2020 "Diagnostic Questions: The NeurIPS 2020 Education Challenge" (arXiv:2007.12061) makalesine atıf istiyor. Bu makale onaylı metinde [25] olarak var.
+- **Projedeki kullanım:** `src/data_prep/eedi_neurips_guess_slip.py` (WBS 5.5). Yalnızca sayısal özetler (G/S, çeldirici olasılıkları) kullanılıyor ve raporlanıyor. Bu, veriyi dağıtmak sayılmaz.
+- **Sonuçlar:**
+  - **Soru resimleri (`data/images/`) soru bankasında kullanılmayacak.** Resimleri metne çevirmek hem türev eser sayılır hem de resimler için konan "yalnızca model eğitimi" kısıtına aykırı olur.
+  - Satır düzeyindeki türetilmiş dosyalar (ör. `eedi_neurips_celdirici.csv`) paylaşılmaz; `data/interim/` içinde kalır.
+  - Ekipte veriyi kullanacak herkes `data.zip` dosyasını kendisi indirir.
 
 ## 4. OpenStax Prealgebra 2e
 

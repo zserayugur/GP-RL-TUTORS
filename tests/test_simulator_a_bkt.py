@@ -27,17 +27,19 @@ def test_reset_is_reproducible_with_seed():
 
 
 def test_hidden_state_fields():
-    h = SimulatorA(profile="average").reset(seed=1)
+    h = SimulatorA(profile="base").reset(seed=1)
     assert h.simulator_id == SIMULATOR_ID
-    assert h.student_profile_id == "average"
+    assert h.student_profile_id == "base"
     assert h.true_mastery.shape == (NUM_SKILLS,)
     assert set(np.unique(h.true_mastery)) <= {0.0, 1.0}
 
 
 def test_all_profiles_sampled():
+    # the 4 profiles of the approved text are sampled; "base" never is
     sim = SimulatorA()
     seen = {sim.reset(seed=s).student_profile_id for s in range(200)}
     assert seen == set(PROFILES)
+    assert len(PROFILES) == 4 and "base" not in seen
 
 
 def test_unknown_profile_rejected():
@@ -47,7 +49,7 @@ def test_unknown_profile_rejected():
 
 def test_answer_rate_matches_bkt_for_unlearned_student():
     # never learns (T=0) -> P(correct) = G; short-answer G when no mc table is given
-    sim = SimulatorA(profile="average", mc_guess_slip=(None,) * NUM_SKILLS)
+    sim = SimulatorA(profile="base", mc_guess_slip=(None,) * NUM_SKILLS)
     sim.reset(seed=3)
     sim._learned[:] = 0.0
     sim._params = tuple(p.__class__(l0=p.l0, t=0.0, g=p.g, s=p.s) for p in sim._params)
@@ -59,7 +61,7 @@ def test_answer_rate_matches_bkt_for_unlearned_student():
 def test_exercises_use_multiple_choice_guess():
     from src.core.simulator_a_bkt import MC_GUESS_SLIP
 
-    sim = SimulatorA(profile="average")
+    sim = SimulatorA(profile="base")
     sim.reset(seed=3)
     sim._learned[:] = 0.0
     sim._params = tuple(p.__class__(l0=p.l0, t=0.0, g=p.g, s=p.s) for p in sim._params)
@@ -68,7 +70,7 @@ def test_exercises_use_multiple_choice_guess():
 
 
 def test_hard_question_is_harder():
-    sim = SimulatorA(profile="average")
+    sim = SimulatorA(profile="base")
     sim.reset(seed=4)
     sim._learned[:] = 1.0
     easy = np.mean([sim.answer(0, "easy_question")[0] for _ in range(3000)])
@@ -88,7 +90,7 @@ def test_learning_is_monotone_and_hidden_state_stays_current():
 
 
 def test_test_items_cause_no_learning():  # FR-17
-    sim = SimulatorA(profile="average")
+    sim = SimulatorA(profile="base")
     sim.reset(seed=6)
     before = sim._learned.copy()
     for _ in range(100):
@@ -98,7 +100,7 @@ def test_test_items_cause_no_learning():  # FR-17
 
 
 def test_expected_test_score_formula():
-    sim = SimulatorA(profile="average")
+    sim = SimulatorA(profile="base")
     sim.reset(seed=8)
     sim._learned[:] = 1.0
     assert sim.expected_test_score() == pytest.approx(np.mean([1 - p.s for p in ASSISTMENTS_BKT_PARAMS]))
@@ -108,14 +110,14 @@ def test_expected_test_score_formula():
 
 def test_teach_effects_and_k0_ablation():
     # K0: hint and worked example switched off -> no learning from them
-    sim = SimulatorA(profile="average", action_effects={"hint": 0.0, "worked_example": 0.0})
+    sim = SimulatorA(profile="base", action_effects={"hint": 0.0, "worked_example": 0.0})
     sim.reset(seed=9)
     sim._learned[:] = 0.0
     for _ in range(500):
         sim.teach(4, "hint")
         sim.teach(4, "worked_example")
     assert sim._learned[4] == 0.0
-    sim2 = SimulatorA(profile="average")
+    sim2 = SimulatorA(profile="base")
     sim2.reset(seed=9)
     sim2._learned[:] = 0.0
     for _ in range(500):

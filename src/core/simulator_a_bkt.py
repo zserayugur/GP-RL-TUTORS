@@ -13,9 +13,12 @@ Parameters come from the pyBKT fit on ASSISTments 2009-2010 (WBS 6.1,
 24 Nov 2026; see log/worklog/seray.md). Raw data is not in this repo.
 
 What is an assumption and still to be decided (marked "ASSUMPTION" below):
-  - Student types (profiles): 5 types as multipliers on the fitted parameters.
-    The number of types is not fixed in the approved text; the handoff/WBS say 5,
-    FR list v4 says 4. Easy to change in `PROFILES`.
+  - Student types (profiles): the approved TUBITAK text asks for at least 4
+    student profiles (IP5): fast learner, slow learner, guesser and persistent
+    misconception. The same 4 are used here so all simulators share them. The
+    multipliers on the fitted parameters are our assumption. The persistent
+    misconception type only differs once the misconception layer (FR-15) exists;
+    until then it behaves like the fitted ("base") student and carries a flag.
   - Effects of actions that are not in the data (hint, worked example, lecture,
     feedback) are hypothetical: an extra learning probability equal to
     `multiplier * T`, with multiplier in [0.5, 2] (WBS 6.4, K0-K3 ablation).
@@ -72,15 +75,19 @@ class Profile:
     t: float = 1.0  # multiplier on T
     g: float = 1.0  # multiplier on G
     s: float = 1.0  # multiplier on S
+    persistent_misconception: bool = False  # used by the misconception layer (FR-15)
 
 
+# The 4 profiles of the approved text (IP5: "en az 4 öğrenci profili").
 PROFILES: dict[str, Profile] = {
-    "average": Profile("average"),  # fitted values as they are
     "fast_learner": Profile("fast_learner", t=2.0),
     "slow_learner": Profile("slow_learner", t=0.5),
-    "low_prior": Profile("low_prior", l0=0.5),  # weaker starting knowledge
     "guesser": Profile("guesser", g=1.5, s=1.5),  # noisy, guess-prone answers
+    "persistent_misconception": Profile("persistent_misconception", persistent_misconception=True),
 }
+
+# Fitted values as they are. Not sampled; for tests and calibration checks only.
+BASE_PROFILE = Profile("base")
 
 # --- Action effects (ASSUMPTION, WBS 6.4) -------------------------------------
 # Extra learning probability = multiplier * T. 1.0 is the centre of [0.5, 2].
@@ -126,7 +133,8 @@ class SimulatorA:
         self.base_params = tuple(params)
         self.mc_guess_slip = tuple(mc_guess_slip)
         self.profiles = dict(profiles or PROFILES)
-        if profile is not None and profile not in self.profiles:
+        self._all_profiles = {**self.profiles, BASE_PROFILE.name: BASE_PROFILE}
+        if profile is not None and profile not in self._all_profiles:
             raise ValueError(f"unknown profile {profile!r}")
         self.fixed_profile = profile  # None -> sample a profile at every reset
         self.action_effects = dict(DEFAULT_ACTION_EFFECTS)
@@ -139,7 +147,7 @@ class SimulatorA:
         self._rng = np.random.default_rng()
         self._params: tuple[BKTParams, ...] = self.base_params
         self._learned = np.zeros(NUM_SKILLS, dtype=np.float32)  # 1.0 = learned; shared with HiddenState
-        self._profile_name = "average"
+        self._profile_name = BASE_PROFILE.name
 
     # -- StudentModel interface ----------------------------------------------
 
@@ -147,7 +155,7 @@ class SimulatorA:
         if seed is not None:
             self._rng = np.random.default_rng(seed)
         self._profile_name = self.fixed_profile or str(self._rng.choice(sorted(self.profiles)))
-        prof = self.profiles[self._profile_name]
+        prof = self._all_profiles[self._profile_name]
         self._params = tuple(apply_profile(p, prof) for p in self.base_params)
         self._learned = np.array([self._rng.random() < p.l0 for p in self._params], dtype=np.float32)
         return self._hidden()
@@ -199,7 +207,7 @@ class SimulatorA:
         if mc is None:
             p = self._params[skill]
             return p.g, p.s
-        prof = self.profiles[self._profile_name]
+        prof = self._all_profiles[self._profile_name]
         return _clip(mc[0] * prof.g, 0.001, _MAX_GS), _clip(mc[1] * prof.s, 0.001, _MAX_GS)
 
     def _learn(self, skill: int, p_learn: float) -> None:
