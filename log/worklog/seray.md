@@ -2,6 +2,27 @@
 
 En yeni kayıt en üstte.
 
+## 2026-11-25 — Eedi NeurIPS lisansı doğrulandı
+
+- **Sonuç:** Resmî sayfa (eedischool.com/projects/neurips-education-challenge) lisansı **CC BY-NC-ND 4.0** olarak veriyor. 24 Kasım kaydındaki "doğrulanamadı" notu artık geçersiz.
+- **Soru resimleri:** Sayfaya göre resimler yalnızca model eğitimi için paylaşılmış; başka amaçla kullanılamaz ve paylaşılamaz. **Bu yüzden task 3-4'teki 139 resimli soru soru bankasında kullanılmayacak.** Eksik sorular ekip tarafından yazılacak (25 Kasım kararı).
+- **Sorun olmayan:** G/S ve çeldirici olasılıkları gibi sayısal özetleri kullanmak ve raporlamak. Atıf: Wang ve ark. 2020, arXiv:2007.12061 ([25]).
+- **Güncellenen dosya:** `doc/veri_kaynaklari.md`, 3. bölüm.
+
+## 2026-11-25 — Karar: eksik sorular ekip tarafından yazılacak (risk 10)
+
+- **Karar (Seray):** S1, S2, S4 ve S5'teki yaklaşık 45 eksik öğretim sorusu ekip tarafından yazılacak. Yanılgılar ve çeldiriciler Eedi'deki yanılgı etiketlerinden alınacak; ASSISTments'ta soru metni olmadığı için oradan soru alınamıyor.
+- **Dayanak:** Onaylı metin "proje ekibinin hazırlayıp doğruladığı başlangıç soru bankası"na izin veriyor; risk tablosundaki 10. risk (görselli sorular çıkınca madde azalması) gerçekleşti.
+- **Kimi etkiliyor:** Herkes — soru yazımının iş bölümü belirlenmeli. Sorular `item_bank` şemasına `source = 'team'` olarak girecek.
+
+## 2026-11-25 — Simülatör A: 4 öğrenci tipi (TÜBİTAK metnine göre)
+
+- **Karar:** Onaylı TÜBİTAK metni esas alındı: "en az 4 öğrenci profili" (İP5). 5 tipli öneri geri çekildi.
+- **Ne değişti:** `src/core/simulator_a_bkt.py` içindeki tipler artık LLM öğrenciyle aynı 4 profil: hızlı öğrenen (T×2), yavaş öğrenen (T×0,5), tahminci (G ve S ×1,5), yanılgısını sürdüren. Böylece üç simülatör aynı tipleri paylaşıyor.
+- **Not:** "Yanılgısını sürdüren" tip, yanılgı katmanı (FR-15) gelene kadar kalibre edilmiş öğrenci gibi davranıyor; yalnızca bir işaret taşıyor. Kalibre edilmiş değerler "base" adıyla yalnızca testler için duruyor ve örneklenmiyor. Testler güncellendi, 13/13 geçti (taklit ortamda).
+- **Kimi etkiliyor:** İrem — FR-13'teki "4 öğrenci tipi" ifadesi doğru, değişiklik gerekmiyor.
+- **Ayrıca fark edilen (İrem):** Onaylı metin gözlemde "son eylem" bilgisini istiyor (genel alanlar: son eylem, oturum adımı, kalan adım oranı). `fraction_tutor_env.py` son eylemi yalnızca maske için tutuyor, gözleme koymuyor. 143 boyuttaki ayrılmış (boş) alana eklenebilir.
+
 ## 2026-11-24 — Literatür notları (BKT ve simülatörler)
 
 - **Ne yapıldı:** `ref/papers/notlar/seray_notlar.md` yazıldı. Notlar İngilizce ve hocanın istediği "önceki çalışma – sınırlılık – katkı" düzeninde. Kapsanan makaleler: Corbett & Anderson 1994 (BKT), Badrinath ve ark. 2021 (pyBKT), Käser & Alexandron 2024 (simüle öğrenciler); isteğe bağlı olarak Doroudi ve ark. 2017 (REM).
