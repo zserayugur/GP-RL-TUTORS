@@ -15,3 +15,9 @@ En yeni kayıt en üstte. Biçim için `README.md` dosyasına bak.
 - qwen3:4b ile yapılan tek soruluk manuel pilotta, aynı soru ve şık sırası korunarak iki ayrı oturum çalıştırıldı. Normal öğrenci istemi B (5/6), payları ve paydaları ayrı ayrı toplayan öğrenci istemi A (2/5) üretti.
 - LLM öğrenciye isteğe bağlı persona parametresi eklendi. Sahte modelle yapılan test, profilin modele iletildiğini ve karıştırılmış şıkların doğru eşlendiğini doğruladı. Yerel çalıştırmada 9 test geçti, isteğe bağlı Ollama testi atlandı.
 - qwen3:4b ile Python üzerinden tek soruluk pilot yapıldı. Aynı soru ve şık sırası kullanıldı. Profil verilmediğinde B (5/6), payları ve paydaları ayrı ayrı toplayan öğrenci profiliyle A (2/5) döndü. Profilli ilk çağrı zaman aşımına uğradı; tekrarında yanıt alındı.
+ - küçük pilot denemesi Doğru çözme rolü: 3/3 beklenen şık (B, C, B) anılgı rolü: 3/3 beklenen şık (A, A, A)
+ ### 2026-11-25 — Ollama yanılgı pilotu
+- Model: yerel Ollama `qwen3:4b`.
+- Doğru çözme rolünde üç bağımsız denemede beklenen şıklar geldi: B, C, B.
+- Payları ve paydaları ayrı ayrı toplama yanılgısı rolünde üç bağımsız denemede beklenen şıklar geldi: A, A, A.
+- Bu küçük pilotta 6/6 yanıt beklenen şıkla eşleşti. Sonuçlar yalnızca işlev kontrolüdür; modelin genel başarısını gösteren kapsamlı bir değerlendirme veya fine-tuning sonucu değildir.
