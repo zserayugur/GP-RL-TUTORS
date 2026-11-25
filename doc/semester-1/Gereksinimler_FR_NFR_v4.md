@@ -1,8 +1,15 @@
-# Gereksinimler ve İzlenebilirlik (WBS 4.1) — v5
+# Gereksinimler ve İzlenebilirlik (WBS 4.1) — v6
 
-*Do RL Tutors Generalize? · Hazırlayan: İrem · v5, 24 Kasım 2026 · Temel: İzlenebilirlik taslağı v3 (18 Kasım),
+*Do RL Tutors Generalize? · Hazırlayan: İrem · v6, 25 Kasım 2026 · Temel: İzlenebilirlik taslağı v3 (18 Kasım),
 onaylı TÜBİTAK metni, GP-1 iş planı v5, Seray'ın Beceri Grafiği ve Use Case belgesi v2, Karar Dokümanı
-(Gözlem/Eylem/Ödül), 18 Kasım danışman toplantısı tutanağı, 24 Kasım danışman görüşmesi (FR-22 onayı).*
+(Gözlem/Eylem/Ödül), 18 Kasım danışman toplantısı tutanağı, 24 Kasım danışman görüşmesi (FR-22 onayı),
+Seray'ın 25 Kasım'da bulduğu "son eylem" eksikliği.*
+
+## v5 → v6 değişikliği: "son eylem" gözleme eklendi
+
+Seray, onaylı metnin (Yöntem §2.1) "genel düzeyde son eylem... kullanılacaktır" şartını kontrol ederken,
+ortamın son eylemi yalnızca maskeleme için tuttuğunu, gözleme hiç koymadığını fark etti. `FR-21` satırına
+ve `src/core/fraction_tutor_env.py`'ye işlendi (bkz. aşağıdaki tablo ve `doc/architecture/Mimari_Tasarim_v2.md`).
 
 ## v4 → v5 değişikliği: FR-22 onaylandı
 
@@ -72,7 +79,7 @@ v4'te kabul edilmiştir (FR-38, FR-39); NFR-13 hâlâ öneri durumunda.
 | FR-18 | Gymnasium arayüzü (reset/step) | RQ1 | 7.1 | — | 1 |
 | FR-19 | Eylem uzayı Discrete(37) | RQ1, H5 | 7.1, 6.4* | UC-03 | 1–2 |
 | FR-20 | Eylem maskesi — **uygulandı** (ön koşul eşiği 0,6; yanılgı geri bildirimi; tekrarlayan konu anlatımı) | RQ1 | 7.1 | UC-03 | 1 |
-| FR-21 | Gözlem vektörü (143 boyut, Elifnaz'ın formal tanımı esas) | RQ1, RQ2 | 7.1 | UC-02, UC-03 | 1 |
+| FR-21 | Gözlem vektörü (143 boyut, Elifnaz'ın formal tanımı esas) — **düzeltme (25 Kasım, Seray'ın bulduğu eksiklik):** "son eylem" artık gözlemde (önceden yalnızca maskeleme için tutuluyordu, onaylı metin Yöntem §2.1'in gerektirdiği gibi gözleme eklenmemişti) | RQ1, RQ2 | 7.1 | UC-02, UC-03 | 1 |
 | FR-22 | Ödül (beklenen kazanç − maliyet) **— onaylandı (hoca, 24 Kasım)** | RQ1 | 7.1, 8.4* | — | 1 |
 | FR-33 | Oturum adım kaydı | RQ1 (analiz) | 7.3*, 9.1* | UC-03, UC-07 | 1 |
 | FR-34 | Politika tarafı BKT izleyicisi — **uygulandı**: `src/core/bkt_tracker.py`, yalnızca gözlenen cevaplardan hesaplıyor (simülatör içi duruma erişmiyor); L0/T/G/S değerleri WBS 6.1 (Seray, pyBKT) tamamlanana kadar yer tutucu | RQ1, RQ2 | 7.1* (6.1 param.) | UC-03 | 1 |

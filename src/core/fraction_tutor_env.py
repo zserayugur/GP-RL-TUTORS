@@ -134,7 +134,10 @@ class FractionTutorEnv(Env):
         # ring buffer of (skill, correct, misconception_class_or_-1)
         self._answer_history: list[tuple[int, bool, int]] = []
         self._post_test_score: float | None = None
-        self._last_action: tuple[int, str] | None = None
+        # Last action taken (TUBITAK Yontem 2.1: "genel duzeyde son eylem...
+        # kullanilacaktir" - must be observable, not just used for masking).
+        self._last_action_name: str | None = None  # one of ACTION_NAMES, or "finish"
+        self._last_action_skill: int | None = None  # None for "finish" / no action yet
 
     # -- Gymnasium API --------------------------------------------------
 
@@ -151,7 +154,8 @@ class FractionTutorEnv(Env):
         self._current_misconception[:] = -1
         self._answer_history.clear()
         self._post_test_score = None
-        self._last_action = None
+        self._last_action_name = None
+        self._last_action_skill = None
         return self._build_observation(), {}
 
     def step(self, action: int):
@@ -167,6 +171,8 @@ class FractionTutorEnv(Env):
 
         if action == FINISH_ACTION:
             terminated = True
+            self._last_action_name = "finish"
+            self._last_action_skill = None
         else:
             skill, action_name = self._decode_action(action)
             cost = ACTION_COST[action_name]
@@ -189,7 +195,8 @@ class FractionTutorEnv(Env):
             else:
                 self._steps_since_last_exercise += 1
 
-            self._last_action = (skill, action_name)
+            self._last_action_name = action_name
+            self._last_action_skill = skill
 
         truncated = self._step_count >= self.max_steps
         if truncated and not terminated:
@@ -233,10 +240,8 @@ class FractionTutorEnv(Env):
                 mask[base + misconception_feedback_idx] = False
 
         # No repeating short_lecture back-to-back on the same skill.
-        if self._last_action is not None:
-            last_skill, last_action_name = self._last_action
-            if last_action_name == "short_lecture":
-                mask[last_skill * ACTIONS_PER_SKILL + short_lecture_idx] = False
+        if self._last_action_name == "short_lecture":
+            mask[self._last_action_skill * ACTIONS_PER_SKILL + short_lecture_idx] = False
 
         # TODO: mask an action once its item-bank pool is exhausted for a
         # skill/difficulty (needs WBS 5.2 item bank; not available yet).
@@ -277,6 +282,11 @@ class FractionTutorEnv(Env):
 
         blocks.append(self._encode_current_misconceptions().astype(np.float32))  # NUM_SKILLS * (num_misconception_classes+1)
 
+        # "Son eylem" (TUBITAK Yontem 2.1; Karar Dokumani "Genel alanlar": son
+        # eylem turu (7) + son beceri (6)). Previously tracked only for masking
+        # (short_lecture repeat check) and never exposed - gap found by Seray.
+        blocks.append(self._encode_last_action().astype(np.float32))  # 7 + 6 = 13
+
         obs = np.concatenate(blocks)
 
         reserved = OBS_DIM - obs.shape[0]
@@ -291,6 +301,19 @@ class FractionTutorEnv(Env):
             obs = np.concatenate([obs, np.zeros(reserved, dtype=np.float32)])
 
         return obs
+
+    def _encode_last_action(self) -> np.ndarray:
+        """7 dims: one-hot over (6 action types + 'finish'), all-zero if no
+        action taken yet. 6 dims: one-hot of the skill it targeted, all-zero
+        for 'finish' or no action yet."""
+        action_type_dim = len(ACTION_NAMES) + 1  # 6 + "finish"
+        out = np.zeros(action_type_dim + NUM_SKILLS, dtype=np.float32)
+        if self._last_action_name == "finish":
+            out[action_type_dim - 1] = 1.0
+        elif self._last_action_name is not None:
+            out[ACTION_NAMES.index(self._last_action_name)] = 1.0
+            out[action_type_dim + self._last_action_skill] = 1.0
+        return out
 
     def _encode_last_n_answers(self) -> np.ndarray:
         slot_dim = NUM_SKILLS + 1 + self.num_misconception_classes

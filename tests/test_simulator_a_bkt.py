@@ -7,6 +7,7 @@ from src.core.simulator_a_bkt import (
     PROFILES,
     SIMULATOR_ID,
     SimulatorA,
+    make_env,
 )
 
 
@@ -123,7 +124,7 @@ def test_teach_effects_and_k0_ablation():
 
 
 def test_works_inside_env():
-    env = FractionTutorEnv(student_model=SimulatorA())
+    env = make_env()
     obs, info = env.reset(seed=0)
     assert info == {}
     done = False
@@ -138,3 +139,13 @@ def test_works_inside_env():
         steps += 1
     assert steps == env.max_steps
     assert set(ACTION_NAMES) >= {"hint", "worked_example"}
+
+
+def test_make_env_uses_fitted_params_not_the_generic_placeholder():
+    """The policy-side BKT tracker (FR-34) must start from Simulator A's real
+    ASSISTments fit, not bkt_tracker.DEFAULT_PARAMS' uniform L0=0.3."""
+    env = make_env()
+    env.reset(seed=0)
+    expected_l0 = np.array([p.l0 for p in ASSISTMENTS_BKT_PARAMS], dtype=np.float32)
+    assert np.allclose(env._bkt_tracker.estimate(), expected_l0)
+    assert not np.allclose(expected_l0, 0.3)  # sanity: real values aren't the placeholder

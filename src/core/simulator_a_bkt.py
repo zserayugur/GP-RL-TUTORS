@@ -35,7 +35,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from .bkt_tracker import BKTParams
-from .fraction_tutor_env import ACTION_NAMES, NUM_SKILLS, HiddenState
+from .fraction_tutor_env import ACTION_NAMES, NUM_SKILLS, FractionTutorEnv, HiddenState
 
 SIMULATOR_ID = "A-BKT"
 
@@ -216,3 +216,14 @@ class SimulatorA:
 
 
 assert set(DEFAULT_ACTION_EFFECTS) | {"easy_question", "hard_question"} == set(ACTION_NAMES)
+
+
+def make_env(profile: str | None = None, **env_kwargs) -> FractionTutorEnv:
+    """FractionTutorEnv wired to Simulator A, with the policy-side BKT tracker
+    (FR-34) seeded from the same ASSISTments fit instead of the generic
+    uniform placeholder in bkt_tracker.DEFAULT_PARAMS."""
+    return FractionTutorEnv(
+        student_model=SimulatorA(profile=profile),
+        bkt_params=ASSISTMENTS_BKT_PARAMS,
+        **env_kwargs,
+    )

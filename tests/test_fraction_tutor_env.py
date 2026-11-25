@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from src.core.fraction_tutor_env import (
+    ACTION_NAMES,
     FINISH_ACTION,
     MIN_STEPS_BEFORE_FINISH,
     NUM_ACTIONS,
@@ -205,6 +206,46 @@ def test_misconception_feedback_opens_after_wrong_answer():
     mask = env.action_masks()
     misconception_feedback_action = 0 * 6 + 5
     assert mask[misconception_feedback_action] == True
+
+
+# -- "Son eylem" must be in the observation, not just used for masking ---
+# (gap found by Seray while checking against the approved TUBITAK text,
+# Yontem 2.1: "genel duzeyde son eylem... kullanilacaktir").
+
+# Offset of the 13-dim last-action block inside the 143-dim observation:
+# 1 (pretest) + 6 (bkt) + 6 (correct) + 6 (incorrect) + 6 (streaks)
+# + 30 (last-N-answers) + 36 (action counts) + 1 + 1 + 1 (step counters)
+# + 24 (current misconceptions) = 118
+LAST_ACTION_OFFSET = 118
+LAST_ACTION_TYPE_DIM = len(ACTION_NAMES) + 1  # 7
+
+
+def test_last_action_block_is_zero_before_any_action():
+    env = make_env()
+    obs, _ = env.reset(seed=0)
+    block = obs[LAST_ACTION_OFFSET : LAST_ACTION_OFFSET + LAST_ACTION_TYPE_DIM + NUM_SKILLS]
+    assert not block.any()
+
+
+def test_last_action_block_reflects_last_educational_action():
+    env = make_env()
+    env.reset(seed=0)
+    obs, *_ = env.step(0)  # S1 (skill 0), easy_question (index 0)
+    block = obs[LAST_ACTION_OFFSET : LAST_ACTION_OFFSET + LAST_ACTION_TYPE_DIM + NUM_SKILLS]
+    assert block[ACTION_NAMES.index("easy_question")] == 1.0
+    assert block[LAST_ACTION_TYPE_DIM + 0] == 1.0  # skill 0
+    assert block.sum() == 2.0  # exactly one action-type bit + one skill bit
+
+
+def test_last_action_block_reflects_finish():
+    env = make_env()
+    env.reset(seed=0)
+    for _ in range(MIN_STEPS_BEFORE_FINISH):
+        env.step(0)
+    obs, *_ = env.step(FINISH_ACTION)
+    block = obs[LAST_ACTION_OFFSET : LAST_ACTION_OFFSET + LAST_ACTION_TYPE_DIM + NUM_SKILLS]
+    assert block[LAST_ACTION_TYPE_DIM - 1] == 1.0  # "finish" slot
+    assert block[LAST_ACTION_TYPE_DIM:].sum() == 0.0  # no skill bit for finish
 
 
 def test_short_lecture_cannot_repeat_back_to_back():

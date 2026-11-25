@@ -1,8 +1,18 @@
-# Sistem Mimarisi ve Ödünleşimler (WBS 4.3) — v3
+# Sistem Mimarisi ve Ödünleşimler (WBS 4.3) — v4
 
-*Do RL Tutors Generalize? · Hazırlayan: İrem · v3, 24 Kasım 2026 · Temel: İzlenebilirlik/Mimari taslağı v3 (18 Kasım),
+*Do RL Tutors Generalize? · Hazırlayan: İrem · v4, 25 Kasım 2026 · Temel: İzlenebilirlik/Mimari taslağı v3 (18 Kasım),
 onaylı TÜBİTAK metni (Şekil 1), Karar Dokümanı (Gözlem/Eylem/Ödül), Seray'ın Beceri Grafiği ve Use Case belgesi v2,
-24 Kasım danışman görüşmesi (FR-22 onayı).*
+24 Kasım danışman görüşmesi (FR-22 onayı), Seray'ın 25 Kasım'da bulduğu "son eylem" eksikliği.*
+
+## v3 → v4 değişikliği: "son eylem" gözleme eklendi (Seray'ın bulduğu eksiklik)
+
+Seray, onaylı TÜBİTAK metnini (Yöntem §2.1: "genel düzeyde **son eylem**, oturum adımı ve kalan adım oranı
+kullanılacaktır") kontrol ederken ortamın "son eylem"i yalnızca maskeleme için (tekrarlayan konu anlatımını
+engellemek) tuttuğunu, gözleme hiç koymadığını fark etti. Yani politika "bir önceki adımda ne yaptım?"
+bilgisini doğrudan görmüyordu, yalnızca sayaçlardan dolaylı çıkarabiliyordu. Düzeltildi:
+`src/core/fraction_tutor_env.py` artık 143 boyutun rezerve kısmından 13'ünü kullanarak son eylem türünü
+(7: 6 eylem + "bitir") ve hedeflediği beceriyi (6, "bitir"de boş) gözleme ekliyor. 3 yeni birim testiyle
+doğrulandı (`tests/test_fraction_tutor_env.py`).
 
 ## v2 → v3 değişikliği: FR-22 onaylandı
 
@@ -37,7 +47,7 @@ modelinden kaynaklanır.
 |---|---|---|
 | 1 · Alan, veri ve içerik | Beceri grafiği (yapılandırma dosyası), SQLite soru/içerik havuzu, ASSISTments ve Eedi ön işleme betikleri. Öğretmen içeriği taslak → onay bekliyor → onaylandı/reddedildi durumlarından geçer; deneyler onaylı havuzun sürümlü anlık görüntüsüyle çalışır. | FR-01–12, FR-32 |
 | 2 · Öğrenci simülatörleri | A (BKT), B (AFM/PFA), C (LLM, yalnızca test). Hepsi aynı reset/step/response sözleşmesini ve ortak yanıt şemasını (doğruluk, seçilen şık, yanılgı kodu) uygular. | FR-13–17 |
-| 3 · Gymnasium ortamı | POMDP: 37 eylem, eylem maskesi (**uygulandı**: ön koşul eşiği 0,6, yanılgı geri bildirimi, tekrarlayan konu anlatımı — havuz tükenmesi maskesi WBS 5.2 bekliyor), **143 boyutlu** yalnızca gözlenebilir gözlem, R = g_norm − Σ c(a) (FR-22, **onaylandı — hoca, 24 Kasım**). Oturum "bitir" eylemiyle (6. adımdan sonra açılır) veya **H = 60** adımda biter, ardından son test yapılır. | FR-18–22, FR-33, FR-38 |
+| 3 · Gymnasium ortamı | POMDP: 37 eylem, eylem maskesi (**uygulandı**: ön koşul eşiği 0,6, yanılgı geri bildirimi, tekrarlayan konu anlatımı — havuz tükenmesi maskesi WBS 5.2 bekliyor), **143 boyutlu** yalnızca gözlenebilir gözlem (**son eylem artık dahil**, 25 Kasım düzeltmesi), R = g_norm − Σ c(a) (FR-22, **onaylandı — hoca, 24 Kasım**). Oturum "bitir" eylemiyle (6. adımdan sonra açılır) veya **H = 60** adımda biter, ardından son test yapılır. | FR-18–22, FR-33, FR-38 |
 | 4 · Eğitmen politikaları | 3 baseline, LinUCB, MaskablePPO (SB3). Eğitim simülatörleri **BKT, PFA ve BKT-PFA karışımını** kapsar. Politika tarafındaki BKT izleyicisi (**uygulandı**, `src/core/bkt_tracker.py`) tahmini ustalığı yalnızca gözlenen cevaplardan hesaplar — hangi simülatör (A/B/C) kullanılırsa kullanılsın aynı şekilde çalışır, gizli duruma hiç erişmez. | FR-23, FR-24, FR-34 |
 | 5 · Deney ve değerlendirme | Yapılandırma + tohum ile tek komut; çapraz simülatör matrisi, DR ve K0–K3 ablasyonları; bootstrap GA, Wilcoxon + Holm, A12; eylem dağılımı ve ödül sömürüsü raporu. | FR-25–27, FR-35, FR-36, FR-39, FR-40 |
 | 6 · Arayüz (Streamlit) | Araştırmacı paneli (oturum kaydından tekrar oynatma, matris), öğrenci demo, içerik yükleme/onay ekranları; giriş ve rol tabanlı erişim. | FR-09–11, FR-28–31, FR-37 |
