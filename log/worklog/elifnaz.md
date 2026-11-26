@@ -21,3 +21,10 @@ En yeni kayıt en üstte. Biçim için `README.md` dosyasına bak.
 - Doğru çözme rolünde üç bağımsız denemede beklenen şıklar geldi: B, C, B.
 - Payları ve paydaları ayrı ayrı toplama yanılgısı rolünde üç bağımsız denemede beklenen şıklar geldi: A, A, A.
 - Bu küçük pilotta 6/6 yanıt beklenen şıkla eşleşti. Sonuçlar yalnızca işlev kontrolüdür; modelin genel başarısını gösteren kapsamlı bir değerlendirme veya fine-tuning sonucu değildir.
+## 2026-11-26 — Eedi pilotu ve fine-tuning hazırlığı
+
+- Eedi’de farklı paydalı basit kesirleri toplama becerisine uyan 5 aday soru bulundu. Bunların 4’ünde payları ve paydaları ayrı ayrı toplama yanılgısı etiketliydi; bu dört soru eğitim dışında tutuldu.
+- Yerel `qwen3:4b`, netleştirilmiş yanılgı talimatıyla dört pilot soruda da beklenen şıkkı seçti (4/4). İlk soruda önceki talimatla hedef şıkkı seçmemişti. Bu, küçük bir prompt pilotu; fine-tuning sonucu değil. Tek harf biçimi dört sorunun tamamı için doğrulanmadı.
+- Pilot dışında aynı yanılgıya uyan 10 aday bulundu. Tek hedef şıkkı olan 8 örnek, eğitim sürecini denemek için yerelde `eedi_sft_smoke.jsonl` dosyasına yazıldı. Ham Eedi dosyaları ve JSONL GitHub’a yüklenmeyecek.
+- Fine-tuning başlatılmadı. Yerel bilgisayarda Intel Iris Xe görünüyor; NVIDIA GPU erişimi için haber bekleniyor.
+- Devam noktası: GPU erişimi netleşince küçük eğitim denemesini çalıştır. İyileşmeyi ölçmek için dört pilot sorusundan daha geniş, eğitimden ayrı bir test seti hazırla.
