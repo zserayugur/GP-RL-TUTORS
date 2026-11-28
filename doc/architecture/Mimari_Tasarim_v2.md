@@ -1,8 +1,22 @@
-# Sistem Mimarisi ve Ödünleşimler (WBS 4.3) — v4
+# Sistem Mimarisi ve Ödünleşimler (WBS 4.3) — v6
 
-*Do RL Tutors Generalize? · Hazırlayan: İrem · v4, 25 Kasım 2026 · Temel: İzlenebilirlik/Mimari taslağı v3 (18 Kasım),
+*Do RL Tutors Generalize? · Hazırlayan: İrem · v6, 28 Kasım 2026 · Temel: İzlenebilirlik/Mimari taslağı v3 (18 Kasım),
 onaylı TÜBİTAK metni (Şekil 1), Karar Dokümanı (Gözlem/Eylem/Ödül), Seray'ın Beceri Grafiği ve Use Case belgesi v2,
-24 Kasım danışman görüşmesi (FR-22 onayı), Seray'ın 25 Kasım'da bulduğu "son eylem" eksikliği.*
+24 Kasım danışman görüşmesi (FR-22 onayı), Seray'ın 25 Kasım'da bulduğu "son eylem" eksikliği,
+25 Kasım açık-nokta gözden geçirmesi, 28 Kasım gözlem blok yapısı düzeltmesi.*
+
+## v5 → v6 değişikliği: gözlem blokları beceri-bazlı tasarıma göre düzeltildi
+
+Katman 3'teki gözlem, 4 blokta (ön test, son N cevap, eylem sayaçları, son alıştırma adımı) yanlışlıkla
+global/basitleştirilmiş kodlanmıştı; Karar Dokümanı'nın beceri-bazlı tasarımına göre düzeltildi. Yeni
+toplam: 117 gerçek boyut (Karar Dokümanı) + 26 rezerve (Elifnaz'ın formal tanımını bekliyor) = 143. Ayrıntı:
+Gereksinimler_FR_NFR_v4.md §"v7 → v8 değişikliği".
+
+## v4 → v5 değişikliği: ayrıcalıklı öğretmenin statüsü netleşti (ekip kararı)
+
+**Kâhin/ayrıcalıklı öğretmen baseline değildir** ve Adv(π,k) formülündeki "en güçlü baseline" hesabına
+girmez; yalnızca iç kontrol/üst sınır referansı olarak raporlanır (Karar Dokümanı'ndaki "üst sınır, yalnızca
+karşılaştırma" ifadesinin netleştirilmiş hâli, 25 Kasım). Katman 4 ve §5 buna göre güncellendi.
 
 ## v3 → v4 değişikliği: "son eylem" gözleme eklendi (Seray'ın bulduğu eksiklik)
 
@@ -48,7 +62,7 @@ modelinden kaynaklanır.
 | 1 · Alan, veri ve içerik | Beceri grafiği (yapılandırma dosyası), SQLite soru/içerik havuzu, ASSISTments ve Eedi ön işleme betikleri. Öğretmen içeriği taslak → onay bekliyor → onaylandı/reddedildi durumlarından geçer; deneyler onaylı havuzun sürümlü anlık görüntüsüyle çalışır. | FR-01–12, FR-32 |
 | 2 · Öğrenci simülatörleri | A (BKT), B (AFM/PFA), C (LLM, yalnızca test). Hepsi aynı reset/step/response sözleşmesini ve ortak yanıt şemasını (doğruluk, seçilen şık, yanılgı kodu) uygular. | FR-13–17 |
 | 3 · Gymnasium ortamı | POMDP: 37 eylem, eylem maskesi (**uygulandı**: ön koşul eşiği 0,6, yanılgı geri bildirimi, tekrarlayan konu anlatımı — havuz tükenmesi maskesi WBS 5.2 bekliyor), **143 boyutlu** yalnızca gözlenebilir gözlem (**son eylem artık dahil**, 25 Kasım düzeltmesi), R = g_norm − Σ c(a) (FR-22, **onaylandı — hoca, 24 Kasım**). Oturum "bitir" eylemiyle (6. adımdan sonra açılır) veya **H = 60** adımda biter, ardından son test yapılır. | FR-18–22, FR-33, FR-38 |
-| 4 · Eğitmen politikaları | 3 baseline, LinUCB, MaskablePPO (SB3). Eğitim simülatörleri **BKT, PFA ve BKT-PFA karışımını** kapsar. Politika tarafındaki BKT izleyicisi (**uygulandı**, `src/core/bkt_tracker.py`) tahmini ustalığı yalnızca gözlenen cevaplardan hesaplar — hangi simülatör (A/B/C) kullanılırsa kullanılsın aynı şekilde çalışır, gizli duruma hiç erişmez. | FR-23, FR-24, FR-34 |
+| 4 · Eğitmen politikaları | 3 baseline, LinUCB, MaskablePPO (SB3). Ayrıcalıklı öğretmen (kâhin) **baseline değil** — yalnızca üst sınır/iç kontrol referansı, Adv formülüne girmez (**ekip kararı, 25 Kasım**). Eğitim simülatörleri **BKT, PFA ve BKT-PFA karışımını** kapsar. Politika tarafındaki BKT izleyicisi (**uygulandı**, `src/core/bkt_tracker.py`) tahmini ustalığı yalnızca gözlenen cevaplardan hesaplar — hangi simülatör (A/B/C) kullanılırsa kullanılsın aynı şekilde çalışır, gizli duruma hiç erişmez. | FR-23, FR-24, FR-34 |
 | 5 · Deney ve değerlendirme | Yapılandırma + tohum ile tek komut; çapraz simülatör matrisi, DR ve K0–K3 ablasyonları; bootstrap GA, Wilcoxon + Holm, A12; eylem dağılımı ve ödül sömürüsü raporu. | FR-25–27, FR-35, FR-36, FR-39, FR-40 |
 | 6 · Arayüz (Streamlit) | Araştırmacı paneli (oturum kaydından tekrar oynatma, matris), öğrenci demo, içerik yükleme/onay ekranları; giriş ve rol tabanlı erişim. | FR-09–11, FR-28–31, FR-37 |
 
@@ -72,9 +86,11 @@ Yeni simülatör ortak sözleşmeyi uygulayınca mevcut politikalarla test edili
 entegrasyon testi). Yeni eylem eklenirse içerik kaydı, simülatör etkisi, gözlem sayacı, maske, maliyet ve birim
 testleri birlikte güncellenir.
 
-## 5. Hâlâ açık olan noktalar
+## 5. Açık noktaların durumu (25 Kasım; ayrıntılı tablo: Gereksinimler_FR_NFR_v4.md §2)
 
-- ~~**FR-22 ödülü**~~ — ✅ 24 Kasım'da onaylandı, bkz. §0 ve Katman 3.
-- **Ayrıcalıklı öğretmen:** Baseline değil, yalnızca üst sınır referansı olarak mı tutulsun?
-- **S1 → S3 oku:** Veri desteği zayıf; alan gerekçesi yeterli mi?
-- **2. dönem WBS:** D2-11–14 GP-1'de taslak kalsın, kesin hâli GP-2'de mi belirlensin?
+- ~~**FR-22 ödülü**~~ — ✅ 24 Kasım'da onaylandı.
+- ~~**Ayrıcalıklı öğretmen**~~ — ✅ 25 Kasım'da ekip kararıyla netleşti: baseline değil, bkz. Katman 4.
+- ~~**2. dönem WBS**~~ — ✅ ekip kararı: GP-1'de taslak kalır, GP-2'de kesinleşir.
+- **S1 → S3 oku, BKT izleyicisi tasarımı, eylem maliyetleri/λ, içerik dili, maske eşiği güvenlik
+  kuralları:** hâlâ hocaya sorulacak/bilgi verilecek — bkz. Gereksinimler_FR_NFR_v4.md §2.1–2.2 (tam liste
+  ve gerekçeler orada).

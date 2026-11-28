@@ -139,7 +139,7 @@ def test_hidden_state_fields_disjoint_from_observable_mastery():
     tracker_estimate = env._bkt_tracker.estimate()
     # HiddenState.true_mastery (0.9) differs from the tracker's prior (L0=0.3)
     assert not np.allclose(hidden.true_mastery, tracker_estimate)
-    block_b = obs[1 : 1 + NUM_SKILLS]
+    block_b = obs[NUM_SKILLS : 2 * NUM_SKILLS]  # after the 6-dim per-skill pretest block
     assert np.allclose(block_b, tracker_estimate)
     assert not np.allclose(block_b, hidden.true_mastery)
 
@@ -212,11 +212,12 @@ def test_misconception_feedback_opens_after_wrong_answer():
 # (gap found by Seray while checking against the approved TUBITAK text,
 # Yontem 2.1: "genel duzeyde son eylem... kullanilacaktir").
 
-# Offset of the 13-dim last-action block inside the 143-dim observation:
-# 1 (pretest) + 6 (bkt) + 6 (correct) + 6 (incorrect) + 6 (streaks)
-# + 30 (last-N-answers) + 36 (action counts) + 1 + 1 + 1 (step counters)
-# + 24 (current misconceptions) = 118
-LAST_ACTION_OFFSET = 118
+# Offset of the 13-dim last-action block inside the 143-dim observation
+# (Karar Dokumani block layout, 25 Kasim fix): 6 (pretest) + 6 (bkt) +
+# 6 (correct) + 6 (incorrect) + 6 (streaks) + 18 (last-N-answers, per skill)
+# + 24 (teaching-action counts) + 6 (steps-since-last-exercise, per skill)
+# + 1 + 1 (step counters) + 24 (current misconceptions) = 104
+LAST_ACTION_OFFSET = 104
 LAST_ACTION_TYPE_DIM = len(ACTION_NAMES) + 1  # 7
 
 
@@ -258,3 +259,57 @@ def test_short_lecture_cannot_repeat_back_to_back():
     assert mask[short_lecture_action] == False
     # a different action on the same skill is still fine
     assert mask[0 * 6 + 0] == True
+
+
+# -- Block layout must follow Karar Dokumani (per-skill, not global) -----
+# (25 Kasim fix: pre-test, last-N-answers, teaching-action counts and
+# steps-since-last-exercise were wrongly collapsed to global scalars.)
+
+
+def test_pretest_scores_are_reported_per_skill():
+    pretest = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6], dtype=np.float32)
+    env = FractionTutorEnv(student_model=FakeStudentModel(), pretest_scores=pretest)
+    obs, _ = env.reset(seed=0)
+    assert np.allclose(obs[:NUM_SKILLS], pretest)
+
+
+def test_last_n_answers_is_per_skill_scalar_not_global_list():
+    env = make_env()
+    env.reset(seed=0)
+    offset = 5 * NUM_SKILLS  # after pretest(6)+bkt(6)+correct(6)+incorrect(6)+streaks(6)
+    last_n = env.last_n_answers
+    env.step(0)  # S1 (skill 0) easy_question, FakeStudentModel always correct
+    obs, *_ = env.step(6)  # S2 (skill 1) easy_question
+    block = obs[offset : offset + NUM_SKILLS * last_n]
+    skill0_slots = block[0 * last_n : 0 * last_n + last_n]
+    skill1_slots = block[1 * last_n : 1 * last_n + last_n]
+    skill2_slots = block[2 * last_n : 2 * last_n + last_n]
+    assert skill0_slots[0] == 1.0  # S1's one attempt, correct
+    assert skill1_slots[0] == 1.0  # S2's one attempt, correct
+    assert np.all(skill2_slots == 0.5)  # S3 never attempted -> "cevap yok"
+
+
+def test_teaching_action_counts_exclude_questions():
+    env = make_env()
+    env.reset(seed=0)
+    offset = 5 * NUM_SKILLS + NUM_SKILLS * env.last_n_answers  # pretest..streaks (5*6) + last-N
+    env.step(0)  # S1 easy_question - must NOT bump the teaching-action block
+    obs, *_ = env.step(2)  # S1 hint - must bump it
+    block = obs[offset : offset + NUM_SKILLS * 4]
+    skill0_counts = block[0:4]  # order: hint, worked_example, short_lecture, misconception_feedback
+    assert skill0_counts[0] > 0  # hint was used
+    assert skill0_counts.sum() == pytest.approx(skill0_counts[0])  # only hint, nothing else
+
+
+def test_steps_since_last_exercise_is_per_skill():
+    env = make_env()
+    env.reset(seed=0)
+    pretest_bkt_counts_streaks_lastn = 5 * NUM_SKILLS + NUM_SKILLS * env.last_n_answers
+    teaching_block = NUM_SKILLS * 4
+    offset = pretest_bkt_counts_streaks_lastn + teaching_block
+    env.step(0)  # S1 (skill 0) easy_question -> resets skill 0's counter to 0
+    obs, *_ = env.step(8)  # S2 (skill 1) hint -> skill 1 not exercised, both counters age by 1 more step
+    block = obs[offset : offset + NUM_SKILLS]
+    assert block[0] == pytest.approx(1 / env.max_steps)  # one step since S1 was exercised
+    assert block[1] == pytest.approx(2 / env.max_steps)  # S2 never exercised, aged 2 steps
+

@@ -49,6 +49,12 @@ ACTION_NAMES = (
     "misconception_feedback",
 )
 
+# "Ogretim eylemleri" (Karar Dokumani "Eylem sayaclari": ipucu, cozumlu ornek,
+# anlatim, yanilgi geri bildirimi - NOT the two question actions, those are
+# already reflected in the correct/incorrect-count blocks).
+TEACHING_ACTION_NAMES = ("hint", "worked_example", "short_lecture", "misconception_feedback")
+TEACHING_ACTION_INDICES = tuple(ACTION_NAMES.index(a) for a in TEACHING_ACTION_NAMES)
+
 ACTION_COST = {
     "easy_question": 1.0,
     "hard_question": 1.0,
@@ -99,7 +105,7 @@ class FractionTutorEnv(Env):
     def __init__(
         self,
         student_model: StudentModel,
-        pretest_score: float = 0.0,
+        pretest_scores: np.ndarray | list[float] | float = 0.0,
         max_steps: int = MAX_STEPS_H,
         min_steps_before_finish: int = MIN_STEPS_BEFORE_FINISH,
         last_n_answers: int = LAST_N_ANSWERS_DEFAULT,
@@ -108,7 +114,14 @@ class FractionTutorEnv(Env):
     ) -> None:
         super().__init__()
         self.student_model = student_model
-        self.pretest_score = pretest_score
+        # Per-skill pre-test accuracy (Karar Dokumani: "Pre-test score", 6 dims).
+        # A single float is broadcast to all 6 skills for convenience.
+        if np.isscalar(pretest_scores):
+            self.pretest_scores = np.full(NUM_SKILLS, float(pretest_scores), dtype=np.float32)
+        else:
+            self.pretest_scores = np.asarray(pretest_scores, dtype=np.float32)
+            if self.pretest_scores.shape != (NUM_SKILLS,):
+                raise ValueError(f"pretest_scores must have shape ({NUM_SKILLS},)")
         self.max_steps = max_steps
         self.min_steps_before_finish = min_steps_before_finish
         self.last_n_answers = last_n_answers
@@ -129,10 +142,11 @@ class FractionTutorEnv(Env):
         self._incorrect_counts = np.zeros(NUM_SKILLS, dtype=np.float32)
         self._streaks = np.zeros(NUM_SKILLS, dtype=np.float32)
         self._action_counts = np.zeros((NUM_SKILLS, ACTIONS_PER_SKILL), dtype=np.float32)
-        self._steps_since_last_exercise = 0
+        self._steps_since_last_exercise = np.zeros(NUM_SKILLS, dtype=np.float32)
         self._current_misconception = np.full(NUM_SKILLS, -1, dtype=np.int32)
-        # ring buffer of (skill, correct, misconception_class_or_-1)
-        self._answer_history: list[tuple[int, bool, int]] = []
+        # Per-skill sliding window of the last `last_n_answers` attempts on
+        # that skill (True/False); used for the "last N answers" obs block.
+        self._skill_answer_history: list[list[bool]] = [[] for _ in range(NUM_SKILLS)]
         self._post_test_score: float | None = None
         # Last action taken (TUBITAK Yontem 2.1: "genel duzeyde son eylem...
         # kullanilacaktir" - must be observable, not just used for masking).
@@ -150,9 +164,9 @@ class FractionTutorEnv(Env):
         self._incorrect_counts[:] = 0
         self._streaks[:] = 0
         self._action_counts[:] = 0
-        self._steps_since_last_exercise = 0
+        self._steps_since_last_exercise[:] = 0
         self._current_misconception[:] = -1
-        self._answer_history.clear()
+        self._skill_answer_history = [[] for _ in range(NUM_SKILLS)]
         self._post_test_score = None
         self._last_action_name = None
         self._last_action_skill = None
@@ -178,11 +192,16 @@ class FractionTutorEnv(Env):
             cost = ACTION_COST[action_name]
             self._action_counts[skill, ACTION_NAMES.index(action_name)] += 1
 
+            # "Steps since last exercise" ages for every skill each step, and
+            # resets to 0 only for the skill actually exercised this step
+            # (Karar Dokumani: "O beceri en son kac adim once calisildi").
+            self._steps_since_last_exercise += 1
+
             is_exercise = action_name in ("easy_question", "hard_question")
             if is_exercise:
                 is_correct, misconception = self.student_model.answer(skill, action_name)
                 self._bkt_tracker.update(skill, is_correct)
-                self._steps_since_last_exercise = 0
+                self._steps_since_last_exercise[skill] = 0
                 if is_correct:
                     self._correct_counts[skill] += 1
                     self._streaks[skill] += 1
@@ -191,9 +210,9 @@ class FractionTutorEnv(Env):
                     self._incorrect_counts[skill] += 1
                     self._streaks[skill] = 0
                     self._current_misconception[skill] = misconception if misconception is not None else -1
-                self._record_answer(skill, is_correct, self._current_misconception[skill])
-            else:
-                self._steps_since_last_exercise += 1
+                self._skill_answer_history[skill].append(is_correct)
+                if len(self._skill_answer_history[skill]) > self.last_n_answers:
+                    self._skill_answer_history[skill].pop(0)
 
             self._last_action_name = action_name
             self._last_action_skill = skill
@@ -262,9 +281,16 @@ class FractionTutorEnv(Env):
     # -- Observation construction ----------------------------------------
 
     def _build_observation(self) -> np.ndarray:
+        """Block layout follows Karar Dokumani (Gozlem/Eylem/Odul), which the
+        18 Kasim team decision kept as the structural reference (only the
+        *total* dim count and the finish-mask step defer to Elifnaz's formal
+        definition): every per-skill quantity is reported per skill (6 dims),
+        not collapsed into a single global scalar.
+        """
         blocks: list[np.ndarray] = []
 
-        blocks.append(np.array([self.pretest_score], dtype=np.float32))  # 1
+        blocks.append(self.pretest_scores.astype(np.float32))  # 6, per skill
+
         blocks.append(self._bkt_tracker.estimate().astype(np.float32))  # 6 (FR-34: policy-side BKT tracker, not ground truth)
 
         denom = max(self._step_count, 1)
@@ -272,15 +298,20 @@ class FractionTutorEnv(Env):
         blocks.append((self._incorrect_counts / denom).astype(np.float32))  # 6
         blocks.append((self._streaks / denom).astype(np.float32))  # 6
 
-        blocks.append(self._encode_last_n_answers().astype(np.float32))  # last_n_answers * (6+1+num_misconception_classes)
+        blocks.append(self._encode_last_n_answers().astype(np.float32))  # NUM_SKILLS * last_n_answers = 18
 
-        blocks.append((self._action_counts.flatten() / denom).astype(np.float32))  # 36
+        # "Ogretim eylemi" sayaclari: yalnizca 4 ogretim eylemi (ipucu, cozumlu
+        # ornek, anlatim, yanilgi geri bildirimi), soru eylemleri degil (onlar
+        # zaten correct/incorrect bloklarinda yansitiliyor). 6 * 4 = 24.
+        blocks.append(
+            (self._action_counts[:, TEACHING_ACTION_INDICES].flatten() / denom).astype(np.float32)
+        )
 
-        blocks.append(np.array([self._steps_since_last_exercise / self.max_steps], dtype=np.float32))  # 1
+        blocks.append((self._steps_since_last_exercise / self.max_steps).astype(np.float32))  # 6, per skill
         blocks.append(np.array([self._step_count / self.max_steps], dtype=np.float32))  # 1
         blocks.append(np.array([(self.max_steps - self._step_count) / self.max_steps], dtype=np.float32))  # 1
 
-        blocks.append(self._encode_current_misconceptions().astype(np.float32))  # NUM_SKILLS * (num_misconception_classes+1)
+        blocks.append(self._encode_current_misconceptions().astype(np.float32))  # NUM_SKILLS * (num_misconception_classes+1) = 24
 
         # "Son eylem" (TUBITAK Yontem 2.1; Karar Dokumani "Genel alanlar": son
         # eylem turu (7) + son beceri (6)). Previously tracked only for masking
@@ -297,7 +328,8 @@ class FractionTutorEnv(Env):
             )
         if reserved:
             # Reserved for dims pending Elifnaz's formal RL definition doc
-            # (final 143-dim layout). Replace this padding once that spec lands.
+            # (final 143-dim layout: 117 from Karar Dokumani + whatever she
+            # adds). Replace this padding once that spec lands.
             obs = np.concatenate([obs, np.zeros(reserved, dtype=np.float32)])
 
         return obs
@@ -316,16 +348,16 @@ class FractionTutorEnv(Env):
         return out
 
     def _encode_last_n_answers(self) -> np.ndarray:
-        slot_dim = NUM_SKILLS + 1 + self.num_misconception_classes
-        out = np.zeros(self.last_n_answers * slot_dim, dtype=np.float32)
-        recent = self._answer_history[-self.last_n_answers :]
-        for i, (skill, correct, misconception) in enumerate(recent):
-            offset = i * slot_dim
-            out[offset + skill] = 1.0
-            out[offset + NUM_SKILLS] = 1.0 if correct else 0.0
-            if not correct and 0 <= misconception < self.num_misconception_classes:
-                out[offset + NUM_SKILLS + 1 + misconception] = 1.0
-        return out
+        """Per-skill scalar history (Karar Dokumani: "Her biri: dogru = 1,
+        yanlis = 0, cevap yok = 0,5"), most recent attempt first. Misconception
+        info is not repeated here - it lives in _encode_current_misconceptions."""
+        out = np.full((NUM_SKILLS, self.last_n_answers), 0.5, dtype=np.float32)
+        for skill in range(NUM_SKILLS):
+            history = self._skill_answer_history[skill]
+            recent = list(reversed(history[-self.last_n_answers :]))
+            for i, correct in enumerate(recent):
+                out[skill, i] = 1.0 if correct else 0.0
+        return out.flatten()
 
     def _encode_current_misconceptions(self) -> np.ndarray:
         slot_dim = self.num_misconception_classes + 1  # +1 for "none"
@@ -346,15 +378,15 @@ class FractionTutorEnv(Env):
         skill, action_idx = divmod(action, ACTIONS_PER_SKILL)
         return skill, ACTION_NAMES[action_idx]
 
-    def _record_answer(self, skill: int, correct: bool, misconception: int) -> None:
-        self._answer_history.append((skill, correct, int(misconception)))
-
     def _terminal_reward(self) -> float:
         # Main reward: g_norm = (post - pre) / (1 - pre), evaluated from the
         # student model's (expected, during training, or sampled, during eval)
         # pre/post test score. Sampled short-answer post-test wiring belongs to
-        # the simulator / evaluation harness, not this env skeleton.
-        pre = self.pretest_score
+        # the simulator / evaluation harness, not this env skeleton. pre/post
+        # are scalar averages over skills (onayli metin Yontem 2.1: E(s) =
+        # (1/K) * sum_k P(dogru | gizli durum, beceri k)), separate from the
+        # per-skill pretest_scores block in the observation.
+        pre = float(self.pretest_scores.mean())
         post = self._post_test_score if self._post_test_score is not None else pre
         if pre >= 1.0:
             return 0.0
