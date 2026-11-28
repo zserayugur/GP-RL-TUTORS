@@ -1,9 +1,16 @@
-# Sistem Mimarisi ve Ödünleşimler (WBS 4.3) — v5
+# Sistem Mimarisi ve Ödünleşimler (WBS 4.3) — v6
 
-*Do RL Tutors Generalize? · Hazırlayan: İrem · v5, 25 Kasım 2026 · Temel: İzlenebilirlik/Mimari taslağı v3 (18 Kasım),
+*Do RL Tutors Generalize? · Hazırlayan: İrem · v6, 28 Kasım 2026 · Temel: İzlenebilirlik/Mimari taslağı v3 (18 Kasım),
 onaylı TÜBİTAK metni (Şekil 1), Karar Dokümanı (Gözlem/Eylem/Ödül), Seray'ın Beceri Grafiği ve Use Case belgesi v2,
 24 Kasım danışman görüşmesi (FR-22 onayı), Seray'ın 25 Kasım'da bulduğu "son eylem" eksikliği,
-25 Kasım açık-nokta gözden geçirmesi (bkz. Gereksinimler_FR_NFR_v4.md §2).*
+25 Kasım açık-nokta gözden geçirmesi, 28 Kasım gözlem blok yapısı düzeltmesi.*
+
+## v5 → v6 değişikliği: gözlem blokları beceri-bazlı tasarıma göre düzeltildi
+
+Katman 3'teki gözlem, 4 blokta (ön test, son N cevap, eylem sayaçları, son alıştırma adımı) yanlışlıkla
+global/basitleştirilmiş kodlanmıştı; Karar Dokümanı'nın beceri-bazlı tasarımına göre düzeltildi. Yeni
+toplam: 117 gerçek boyut (Karar Dokümanı) + 26 rezerve (Elifnaz'ın formal tanımını bekliyor) = 143. Ayrıntı:
+Gereksinimler_FR_NFR_v4.md §"v7 → v8 değişikliği".
 
 ## v4 → v5 değişikliği: ayrıcalıklı öğretmenin statüsü netleşti (ekip kararı)
 

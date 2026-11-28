@@ -1,9 +1,25 @@
-# Gereksinimler ve İzlenebilirlik (WBS 4.1) — v7
+# Gereksinimler ve İzlenebilirlik (WBS 4.1) — v8
 
-*Do RL Tutors Generalize? · Hazırlayan: İrem · v7, 25 Kasım 2026 · Temel: İzlenebilirlik taslağı v3 (18 Kasım),
+*Do RL Tutors Generalize? · Hazırlayan: İrem · v8, 28 Kasım 2026 · Temel: İzlenebilirlik taslağı v3 (18 Kasım),
 onaylı TÜBİTAK metni, GP-1 iş planı v5, Seray'ın Beceri Grafiği ve Use Case belgesi v2, Karar Dokümanı
 (Gözlem/Eylem/Ödül), 18 Kasım danışman toplantısı tutanağı, 24 Kasım danışman görüşmesi (FR-22 onayı),
-Seray'ın 25 Kasım'da bulduğu "son eylem" eksikliği, 25 Kasım açık-nokta gözden geçirmesi (§2).*
+Seray'ın 25 Kasım'da bulduğu "son eylem" eksikliği, 25 Kasım açık-nokta gözden geçirmesi (§2),
+28 Kasım gözlem blok yapısı düzeltmesi.*
+
+## v7 → v8 değişikliği: gözlem blokları Karar Dokümanı'nın beceri-bazlı tasarımına göre düzeltildi
+
+Kod incelemesinde 4 blokta hata bulundu: ön test puanı, son N cevap, eylem sayaçları ve "son alıştırmadan bu
+yana" sayacı, Karar Dokümanı'nın **beceri bazlı** tasarımı yerine yanlışlıkla **tek global skaler/farklı
+yapı** olarak kodlanmıştı (İrem'in kodlama hatası, Elifnaz'ın veya Zeynep'in belgesinin hatası değil — Zeynep'in
+Karar Dokümanı zaten doğru tasarımı veriyordu). Düzeltildi:
+- Ön test puanı: 1 → **6** (beceri başına)
+- Son N cevap: 30 (global liste + yanılgı) → **18** (beceri başına skaler geçmiş: 1/0/0,5)
+- Eylem sayaçları: 36 (6 eylem türü) → **24** (yalnızca 4 öğretim eylemi: ipucu, çözümlü örnek, anlatım,
+  yanılgı geri bildirimi — sorular zaten doğru/yanlış sayılarında var)
+- Son alıştırmadan bu yana: 1 → **6** (beceri başına)
+
+Yeni toplam: **117 gerçek boyut + 26 rezerve (Elifnaz'ın formal tanımını bekliyor) = 143.** 4 yeni test eklendi
+(`tests/test_fraction_tutor_env.py`), toplam 44 test geçiyor.
 
 ## v6 → v7 değişikliği: 13 maddelik açık liste gözden geçirildi
 
@@ -87,7 +103,7 @@ v4'te kabul edilmiştir (FR-38, FR-39); NFR-13 hâlâ öneri durumunda.
 | FR-18 | Gymnasium arayüzü (reset/step) | RQ1 | 7.1 | — | 1 |
 | FR-19 | Eylem uzayı Discrete(37) | RQ1, H5 | 7.1, 6.4* | UC-03 | 1–2 |
 | FR-20 | Eylem maskesi — **uygulandı** (ön koşul eşiği 0,6; yanılgı geri bildirimi; tekrarlayan konu anlatımı) | RQ1 | 7.1 | UC-03 | 1 |
-| FR-21 | Gözlem vektörü (143 boyut, Elifnaz'ın formal tanımı esas) — **düzeltme (25 Kasım, Seray'ın bulduğu eksiklik):** "son eylem" artık gözlemde (önceden yalnızca maskeleme için tutuluyordu, onaylı metin Yöntem §2.1'in gerektirdiği gibi gözleme eklenmemişti) | RQ1, RQ2 | 7.1 | UC-02, UC-03 | 1 |
+| FR-21 | Gözlem vektörü (143 boyut = Karar Dokümanı'nın 117'si + Elifnaz'ın formal tanımını bekleyen 26 rezerve) — **düzeltme (25 Kasım):** "son eylem" artık gözlemde (bkz. Seray'ın bulduğu eksiklik); **ayrıca düzeltme (28 Kasım):** ön test, son N cevap, eylem sayaçları, son alıştırma adımı blokları yanlışlıkla global/basitleştirilmiş kodlanmıştı — Karar Dokümanı'nın beceri-bazlı tasarımına göre yeniden yazıldı | RQ1, RQ2 | 7.1 | UC-02, UC-03 | 1 |
 | FR-22 | Ödül (beklenen kazanç − maliyet) **— onaylandı (hoca, 24 Kasım)** | RQ1 | 7.1, 8.4* | — | 1 |
 | FR-33 | Oturum adım kaydı | RQ1 (analiz) | 7.3*, 9.1* | UC-03, UC-07 | 1 |
 | FR-34 | Politika tarafı BKT izleyicisi — **uygulandı**: `src/core/bkt_tracker.py`, yalnızca gözlenen cevaplardan hesaplıyor (simülatör içi duruma erişmiyor); L0/T/G/S değerleri WBS 6.1 (Seray, pyBKT) tamamlanana kadar yer tutucu | RQ1, RQ2 | 7.1* (6.1 param.) | UC-03 | 1 |

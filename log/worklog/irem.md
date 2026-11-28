@@ -2,6 +2,24 @@
 
 En yeni kayıt en üstte. Biçim için `README.md` dosyasına bak.
 
+## 2026-11-28 — Gözlem blokları Karar Dokümanı'nın beceri-bazlı tasarımına göre düzeltildi
+
+- **Ne yapıldı:** Hocaya sunum hazırlığı sırasında gözlem tablosu Zeynep'in Karar Dokümanı'yla (117 boyut)
+  satır satır karşılaştırıldı; 4 blokta hata bulundu — ön test puanı, son N cevap, eylem sayaçları ve "son
+  alıştırmadan bu yana" sayacı **yanlışlıkla global/basitleştirilmiş** kodlanmıştı, Karar Dokümanı'nın
+  istediği **beceri bazlı** (6 ayrı değer) tasarım yerine. Bu benim kodlama hatamdı, Zeynep'in veya
+  Elifnaz'ın belgesinin hatası değil — Elifnaz henüz yalnızca toplam boyut sayısını (143) vermişti, detaylı
+  tasarım zaten Zeynep'in dokümanındaydı ve ben ona tam sadık kalmamıştım.
+- **Sonuç / dosyalar:** `src/core/fraction_tutor_env.py` (4 blok yeniden yazıldı: `pretest_scores` artık
+  6 boyutlu, `_encode_last_n_answers` beceri-bazlı skaler geçmişe çevrildi, eylem sayaçları yalnızca 4
+  öğretim eylemini sayıyor, `_steps_since_last_exercise` artık 6 boyutlu dizi). 4 yeni test eklendi
+  (`tests/test_fraction_tutor_env.py`). Toplam 44/44 test geçiyor. Yeni toplam: 117 gerçek + 26 rezerve = 143.
+  `Gereksinimler_FR_NFR_v4.md` (v8), `Mimari_Tasarim_v2.md` (v6) güncellendi.
+- **Kararlar / açık noktalar:** —
+- **Kimi etkiliyor:** Elifnaz (formal tanım belgesi artık 117'lik sağlam bir taban üzerine 26 ek boyut
+  eklemek üzere kurgulanabilir, baştan tasarlamasına gerek yok).
+- **Sıradaki adım:** Elifnaz'ın formal tanım belgesi gelince rezerve 26 boyutu doldurmak.
+
 ## 2026-11-25 — Açık nokta listesi (13 madde) gözden geçirildi, bazıları karara bağlandı
 
 - **Ne yapıldı:** FR/NFR ve mimari belgelerindeki "hocaya sorulacaklar" listesindeki 13 madde tek tek
