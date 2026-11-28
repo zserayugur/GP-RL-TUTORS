@@ -1,0 +1,26 @@
+@startuml 03b_researcher_experiments
+!include ../style.iuml
+title Teacher / Researcher — Experiments
+left to right direction
+
+actor "Teacher /\nResearcher" as RS
+
+rectangle "RL Fraction Tutor" {
+  usecase "UC-15\nCalibrate simulator" as UC15
+  usecase "UC-14\nTrain and save policy" as UC14
+  usecase "UC-05\nRun cross-simulator\nexperiment" as UC05
+  usecase "UC-18\nSelect simulator\nand policy" as UC18 #F2F2F2
+  usecase "UC-07\nReplay session" as UC07
+  usecase "UC-06\nView results" as UC06
+  usecase "UC-19\nExport results" as UC19 #F2F2F2
+}
+
+RS -- UC15
+RS -- UC14
+RS -- UC05
+RS -- UC07
+RS -- UC06
+UC14 ..> UC18 : <<include>>
+UC05 ..> UC18 : <<include>>
+UC06 <.. UC19 : <<extend>>
+@enduml
