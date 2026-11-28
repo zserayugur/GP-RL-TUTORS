@@ -1,9 +1,17 @@
-# Gereksinimler ve İzlenebilirlik (WBS 4.1) — v6
+# Gereksinimler ve İzlenebilirlik (WBS 4.1) — v7
 
-*Do RL Tutors Generalize? · Hazırlayan: İrem · v6, 25 Kasım 2026 · Temel: İzlenebilirlik taslağı v3 (18 Kasım),
+*Do RL Tutors Generalize? · Hazırlayan: İrem · v7, 25 Kasım 2026 · Temel: İzlenebilirlik taslağı v3 (18 Kasım),
 onaylı TÜBİTAK metni, GP-1 iş planı v5, Seray'ın Beceri Grafiği ve Use Case belgesi v2, Karar Dokümanı
 (Gözlem/Eylem/Ödül), 18 Kasım danışman toplantısı tutanağı, 24 Kasım danışman görüşmesi (FR-22 onayı),
-Seray'ın 25 Kasım'da bulduğu "son eylem" eksikliği.*
+Seray'ın 25 Kasım'da bulduğu "son eylem" eksikliği, 25 Kasım açık-nokta gözden geçirmesi (§2).*
+
+## v6 → v7 değişikliği: 13 maddelik açık liste gözden geçirildi
+
+Bkz. §2: hangi maddelerin zaten bir karar dokümanına dayandığı (N=3, yanılgı sınıfı=3, H=60, RAG, S1→S3,
+son test uzunluğu — hocaya yalnızca bilgi verilecek), hangilerinin ekip tarafından şimdi karara bağlandığı
+(ayrıcalıklı öğretmen statüsü, NFR-13, 2. dönem WBS) ve hangilerinin gerçekten hocadan yeni bir karar
+beklediği (maliyet/λ, maske eşiği + güvenlik kuralları, izleyici tasarımı, dil) ayrıştırıldı. Maske eşiğine
+eklenecek "güvenlik kuralları" henüz tanımlanmadı, ayrıca ele alınacak.
 
 ## v5 → v6 değişikliği: "son eylem" gözleme eklendi
 
@@ -89,7 +97,7 @@ v4'te kabul edilmiştir (FR-38, FR-39); NFR-13 hâlâ öneri durumunda.
 
 | ID | Gereksinim (kısa) | RQ / H | WBS | UC | Dönem |
 |---|---|---|---|---|---|
-| FR-23 | Baseline politikalar (3); ayrıcalıklı öğretmen yalnızca üst sınır referansı (öneri — hocaya sorulacak) | RQ1, H1 | 7.2 | UC-05 | 1 |
+| FR-23 | Baseline politikalar (3); ayrıcalıklı öğretmen (kâhin) **baseline değil**, yalnızca üst sınır referansı — Adv formülüne girmez (**ekip kararı, 25 Kasım**) | RQ1, H1 | 7.2 | UC-05 | 1 |
 | FR-24 | LinUCB ve MaskablePPO; **kabul kriteri: eğitim simülatörleri BKT, PFA ve BKT-PFA karışımını kapsar** | RQ1, H1 | 8.1, 8.2 | UC-05 | 1 |
 | FR-25 | Tek komutla deney (yapılandırma + tohum) | RQ1–RQ3 | 7.3, 8.3 | UC-05 | 1 |
 | FR-26 | Çapraz simülatör matrisi, transfer açığı | RQ2, H2 | D2-13* | UC-05, UC-06 | 2 |
@@ -125,7 +133,7 @@ v4'te kabul edilmiştir (FR-38, FR-39); NFR-13 hâlâ öneri durumunda.
 | NFR-10 | Genişletilebilirlik (ortak simülatör arayüzü) | FR-18 | 7.1 · test D2-11* | Sahte simülatörle entegrasyon testi — **uygulandı**: `FakeStudentModel` (`tests/test_fraction_tutor_env.py`) |
 | NFR-11 | Kullanılabilirlik (dashboard) | FR-28, FR-29 | 9.1 · D2-13* | Ekip dışı kullanım denemesi |
 | NFR-12 | Güvenlik (hash, sunucu tarafı yetki) | FR-30, FR-37 | D2-14* | Yetkisiz istek testi |
-| NFR-13 | Kurulum ve belgeleme: Docker + README (öneri — hâlâ ekip onayı bekliyor) | FR-25 | 1.3, 7.3 | Temiz makinede README ile kurulum denemesi |
+| NFR-13 | Kurulum ve belgeleme: **README zorunlu, Docker isteğe bağlı** (**ekip kararı, 25 Kasım**) — uygulandı: kök `README.md`'de kurulum adımları | FR-25 | 1.3, 7.3 | Temiz makinede README ile kurulum denemesi |
 
 ## 1.2 Ters kontrol: her RQ'yu karşılayan gereksinimler
 
@@ -149,20 +157,45 @@ gereksinimleridir.
 | D2-13 | Çapraz simülatör deneyleri, domain randomization, sonuç paneli | FR-26, FR-27 (DR), FR-29, NFR-11 |
 | D2-14 | İçerik yönetimi, kullanıcılar ve öğrenci demo arayüzü | FR-09–11, FR-30, FR-31, FR-37, NFR-12 |
 
-Numaralar öneridir; GP-2 iş planı yazılırken kesinleşecek — **hâlâ açık** (hocaya sorulacak, §4).
+Numaralar öneridir; GP-2 iş planı yazılırken kesinleşecek — **ekip kararı: GP-1'de taslak kalır** (bkz. §2.3).
 
-## 2. Hâlâ açık olan noktalar
+## 2. Açık noktaların durumu (25 Kasım, İrem'in sentezi)
 
-### 2.1 Hocaya sorulacaklar
+13 maddelik açık liste gözden geçirildi: hangilerinin zaten bir karar dokümanına/onaylı metne dayandığı,
+hangilerinin gerçekten hocadan yeni bir karar beklediği ayrıştırıldı.
 
-- ~~**FR-22 ödülü**~~ — ✅ 24 Kasım'da onaylandı, bkz. başlık altındaki not.
-- **Ayrıcalıklı öğretmen (kâhin):** Baseline değil, yalnızca üst sınır referansı olarak mı tutulacak?
-- **S1 → S3 oku:** Veri desteği zayıf (242 ortak öğrenci, Spearman 0,23); alan gerekçesiyle korunuyor,
-  oklu/oksuz ablasyonla kontrol edilecek. Hocadan "alan gerekçesi yeterli mi?" teyidi isteniyor.
-- **2. dönem WBS (D2-11–14):** GP-1'de taslak kalsın, kesinleşmesi GP-2'ye mi bırakılsın?
+### 2.1 Hocaya sorulacaklar (gerçekten açık, yeni karar gerekiyor)
 
-### 2.2 Ekip onayı bekleyenler
+- ~~**FR-22 ödülü**~~ — ✅ 24 Kasım'da onaylandı.
+- **Eylem maliyetleri ve λ:** TÜBİTAK metni "pilotla belirlenip sabit tutulacak" diyor ama λ'yı hiç
+  belirtmiyor. Öneri: sabit bir ana değer (λ = 0,003) + duyarlılık analizi (λ ∈ {0; 0,0015; 0,003; 0,006}).
+  Literatüre dayalı tek bir değer mi, yoksa bu duyarlılık analizi yeterli mi?
+- **Maske eşiği (0,6) ve ek güvenlik kuralları:** Eşiğin kendisi öneri olarak duruyor; kilitlenmeyi
+  önleyecek ek kurallar henüz netleşmedi — **ayrıca ele alınacak.**
+- **BKT izleyicisini gözleme koymak:** Onaylı metinde zaten bu şekilde (MLP + izleyici), alternatifi
+  (RecurrentPPO) metinde yok. Öneri: mevcut tasarım korunsun, izleyicisiz gözlem ayrı bir ablasyon olarak
+  eklensin. Bu çerçeveyi onaylıyor musunuz?
+- **İçerik ve arayüz dili:** Hiçbir belgede karar yok. Öneri: deneyler İngilizce yürütülsün (kaynaklar zaten
+  İngilizce). Onaylıyor musunuz?
 
-- **NFR-13 (Docker + README):** Eklensin mi? Henüz onay yok.
-- **İçerik ve arayüz dili:** Kaynaklar İngilizce, kullanıcılar Türk — sorular çevrilecek mi? FR-09, FR-31 ve
-  LLM istemlerini etkiler. 25 Kasım durum kontrolünde gündeme alınmalı.
+### 2.2 Hocaya bilgi verilecekler (ekip kararı var, onay değil bilgilendirme yeterli)
+
+- **Son N cevap = 3:** Karar Dokümanı'nda zaten var ("son 3 cevap", 18 boyut); kodda da varsayılan bu
+  (`LAST_N_ANSWERS_DEFAULT = 3`).
+- **Yanılgı sözlüğü = 3 sınıf + "diğer":** Karar Dokümanı'nda zaten var ("becerinin en sık 3 yanılgısı,
+  one-hot"); kodda da bu şekilde uygulandı (`NUM_MISCONCEPTION_CLASSES = 3` + "yok/diğer" durumu).
+- **Son test uzunluğu = beceri başına 2 soru:** Öneri olarak zaten vardı, yeterli kabul edildi.
+- **S1 → S3 oku:** Seray'ın belgesinde veri desteğinin zayıf olduğu zaten açıkça yazılı; alan gerekçesiyle
+  (ortak payda = denk kesir gerekir) korunuyor, oklu/oksuz ablasyonla kontrol edilecek.
+- **RAG kapsamı:** 17 Kasım'da ekip kararı zaten alındı (yalnızca PoC/çevrimdışı/etiket tabanlı); değişiklik yok.
+- **H = 60:** 18 Kasım ekip kararı; değişiklik yok.
+
+### 2.3 Ekip kararları (yeni karar verildi, 25 Kasım)
+
+- **Ayrıcalıklı öğretmen (kâhin):** Karar Dokümanı'ndaki "üst sınır, yalnızca karşılaştırma" ifadesi
+  netleştirildi: **baseline değil**, Adv(π,k) formülündeki "en güçlü baseline" hesabına **girmez**, yalnızca
+  iç kontrol/üst sınır referansı olarak raporlanır. FR-23'e işlendi.
+- **NFR-13 (kurulum/belgeleme):** **README zorunlu, Docker isteğe bağlı.** Kök dizindeki `README.md`'ye
+  kurulum adımları eklendi (bkz. repo).
+- **2. dönem WBS paketleri (D2-11–14):** GP-1'de taslak olarak kalır; kesin hâli GP-2 iş planında
+  belirlenecek.

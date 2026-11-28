@@ -2,6 +2,23 @@
 
 En yeni kayıt en üstte. Biçim için `README.md` dosyasına bak.
 
+## 2026-11-25 — Açık nokta listesi (13 madde) gözden geçirildi, bazıları karara bağlandı
+
+- **Ne yapıldı:** FR/NFR ve mimari belgelerindeki "hocaya sorulacaklar" listesindeki 13 madde tek tek
+  incelendi: hangilerinin zaten Karar Dokümanı/onaylı metinde cevabı olduğu (N=3, yanılgı sınıfı=3+diğer,
+  H=60, RAG, S1→S3, son test uzunluğu — hocaya yalnızca bilgi verilecek), hangilerinin ekip tarafından şimdi
+  karara bağlanabileceği, hangilerinin gerçekten hocadan yeni karar beklediği ayrıştırıldı.
+- **Sonuç / dosyalar:** `Gereksinimler_FR_NFR_v4.md` (v7), `Mimari_Tasarim_v2.md` (v5), kök `README.md`
+  (NFR-13 kararı gereği kurulum adımları eklendi).
+- **Kararlar / açık noktalar:**
+  - **Ekip kararı:** Ayrıcalıklı öğretmen (kâhin) baseline değil, Adv formülüne girmez. NFR-13: README
+    zorunlu, Docker isteğe bağlı. 2. dönem WBS paketleri GP-1'de taslak kalır.
+  - **Hâlâ hocaya sorulacak:** eylem maliyetleri/λ, maske eşiği (0,6) + tanımlanmamış "iki güvenlik kuralı"
+    (henüz netleşmedi, ayrıca ele alınacak), BKT izleyicisi tasarımının onayı, içerik/arayüz dili.
+- **Kimi etkiliyor:** —
+- **Sıradaki adım:** Maske eşiğine eklenecek güvenlik kurallarının netleştirilmesi; hocayla görüşmede bu
+  4 maddenin cevaplanması.
+
 ## 2026-11-25 — Simülatör A'nın gerçek BKT parametreleri politika izleyicisine bağlandı
 
 - **Ne yapıldı:** `bkt_tracker.py`'deki politika tarafı izleyici, varsayılan olarak hâlâ yer tutucu
