@@ -1,0 +1,24 @@
+@startuml 01_student
+!include ../style.iuml
+title Student — Learning session
+left to right direction
+
+actor "Student" as S
+
+rectangle "RL Fraction Tutor" {
+  usecase "UC-01\nSelect topic or skill" as UC01
+  usecase "UC-02\nTake pre-test" as UC02
+  usecase "UC-21\nScore short answer and\nmap misconception" as UC21 #F2F2F2
+  usecase "UC-03\nJoin teaching session" as UC03
+  usecase "UC-20\nEvaluate answer and\nupdate observation" as UC20 #F2F2F2
+  usecase "UC-04\nTake post-test and\nsee progress" as UC04
+}
+
+S -- UC01
+S -- UC02
+S -- UC03
+S -- UC04
+UC03 ..> UC20 : <<include>>
+UC02 ..> UC21 : <<include>>
+UC04 ..> UC21 : <<include>>
+@enduml
