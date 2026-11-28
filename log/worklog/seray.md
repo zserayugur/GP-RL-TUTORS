@@ -2,6 +2,47 @@
 
 En yeni kayıt en üstte.
 
+## 2026-11-28 — Use case belgesi: öğrenci
+
+- **Ne yapıldı:** `doc/diagrams/use-case/01_student.puml` (diyagram) ve `student_use_cases.md` yazıldı. UC-01–UC-04, v2 belgesindeki senaryolardan İngilizceye çevrilip ortak tablo biçimine getirildi. v4'te numarasız olan iki ortak alt use case numaralandı: UC-20 (cevabı değerlendirme ve gözlemi güncelleme, UC-03 içerir) ve UC-21 (kısa cevabı puanlama ve yanılgı eşleme, UC-02 ve UC-04 içerir).
+- **Açık noktalar:** UC-20 ve UC-21 numaraları ekipçe onaylanmalı; izlenebilirlik tablosuna UC-20 → FR-21, FR-34 ve UC-21 → FR-06, FR-08 eklenmeli (İrem).
+- **Tutarsızlık notu:** Önceki v2 belgesindeki UC-05 hem eğitimi hem testi kapsıyordu; yeni belgede UC-14 (eğitim) ve UC-05 (çapraz değerlendirme) olarak ayrıldı. Ekip bu ayrımı onaylarsa v2 senaryosu buna göre güncellenmeli.
+- **Sıradaki adım:** Yönetici (UC-11, UC-12), sonra mockup'lar.
+
+## 2026-11-28 — Use case belgesi: diyagram, liste ve açıklama tabloları (öğretmen/araştırmacı, denetçi)
+
+- **Ne yapıldı:** `doc/diagrams/use-case/teacher_researcher_use_cases.md` yazıldı (İngilizce, rapor dili). İki diyagramın altında kısa use case listesi ve 13 use case'in açıklama tablosu var: UC-05, 06, 07, 08, 09, 10, 13, 14, 15, 16, 17, 18, 19. Tablo alanları: aktör, amaç, ön koşul, tetikleyici, ana akış, alternatif akışlar, hata akışları, son koşul, ilişkiler, gereksinimler.
+- **Açık noktalar (ekip onayı):**
+  - UC-10'da "değişiklik iste" sonucu için *returned* durumu eklendi; onaylı metinde yalnızca taslak, onay bekliyor, onaylandı ve reddedildi var.
+  - UC-15 kalibrasyonu pratikte araştırma ekibinin betikle yaptığı iş olarak yazıldı.
+  - UC-09/UC-10 numaraları ve akışları Elifnaz'ın senaryolarıyla eşleştirilmeli.
+- **Sıradaki adım:** Öğrenci, İçerik Denetçisi ve Yönetici için aynı kalıpta diyagram ve tablolar; ardından mockup'lar.
+
+## 2026-11-28 — Aktör bazlı use case diyagramları (öğretmen ve araştırmacı)
+
+- **Ne yapıldı:** Danışmanın isteğiyle her aktör için ayrı ve detaylı use case diyagramı çizilmeye başlandı. Diyagramlar PlantUML ile yazılıyor: `doc/diagrams/use-case/` (kaynak `.puml`, çıktı `.png`). Ortak stil `doc/diagrams/style.iuml` dosyasında, üretme talimatı `doc/diagrams/README.md` dosyasında.
+- **Hazır olanlar:** `03a_teacher_content` (öğretmen, içerik) ve `03b_researcher_experiments` (araştırmacı, deneyler). İrem'in UML yorumları uygulandı:
+  - Aktör ile use case arasında oksuz düz çizgi kullanıldı.
+  - Alt use case'ler numaralandı: UC-16 içerik durumunu izleme, UC-17 otomatik içerik doğrulama, UC-18 simülatör ve politika seçme, UC-19 sonuçları dışa aktarma (FR-29).
+  - Aktör: İrem'in ikinci yorumu üzerine genelleştirme kaldırıldı (alt aktör üst aktörün bütün use case'lerini miras alacağı için yanlış anlama yaratıyordu). Onaylı metne sadık kalınarak tek rol "Teacher / Researcher" kullanılıyor. Alternatif (ekip isterse): "Kayıtlı Kullanıcı" üst aktöründen türeyen ayrı Teacher, Researcher ve Content Reviewer rolleri; bu durumda belgelerde onaylı metinden sapma olarak bir cümleyle belirtilmeli. UC-15'in pratikte araştırma ekibince betikle yapıldığı açıklama tablosuna yazılacak.
+  - UC-09 geri geldi: "Review pending content" (İçerik Denetçisi; onay bekleyen içerikleri listeleme ve inceleme). UC-17 yalnızca otomatik doğrulama. Elifnaz'ın senaryo numaralarıyla eşleşmeli.
+  - Senaryoya yazılacak: UC-10'daki "düzeltme iste" seçeneği öğretmeni UC-13'e (içerik düzenleme) yönlendirir.
+  - İzlenebilirlik önerisi (İrem): UC-13 → FR-09, FR-10; UC-16 → FR-11; UC-17 → FR-10.
+  - UC-14 ile UC-05 ayrıldı: UC-14 = bir simülatörde politika eğitip kaydetmek; UC-05 = kaydedilmiş politikaları ve baseline'ları çapraz simülatör matrisinde değerlendirmek.
+- **Açık noktalar:** Yeni numaralar (UC-16–UC-19) ve aktör ayrımı ekipçe onaylanmalı. Bu kararlar açıklama tablolarına da işlenecek.
+- **Kimi etkiliyor:** İrem (izlenebilirlik tablosuna UC-16–19 eklenmeli), Elifnaz (UC-08–10).
+
+## 2026-11-28 — Danışman toplantısı notları ve GP-1 rapor iş paketleri
+
+- **Ne yapıldı:** Toplantı notları düzenlenip depoya kondu: `log/meetings/danisman_toplantisi_notlari_kasim_sonu.md`. GP-1 raporu için bölüm planı ve iş paketleri taslağı yazıldı: `doc/semester-1/GP1_rapor_is_paketleri_taslak.md` (10 bölüm, 90 sayfa, 4 sequence diyagramı, haftalık plan).
+- **Kararlar / açık noktalar:**
+  - Eylem uzayı onaylı metinde kesikli (37); toplantıda gerekçe istendi.
+  - DQN ve LLM fine-tuning onaylı metinde "genişletme" olarak geçiyor; çekirdeğe alınırsa kapsam değişikliği olarak kaydedilmeli.
+  - Toplantı tarihi notlara eklenmeli.
+- **Kimi etkiliyor:** Herkes. İş paketi tablosundaki sorumlular öneri; ekip onaylamalı. Elifnaz — LLM maddeleri; İrem — algoritma ve eylem uzayı gerekçesi.
+- **Sıradaki adım:** Ekibin bölüm planını onaylaması (H8).
+- **Eedi NeurIPS lisansı (danışman görüşü):** Danışman lisansı inceledi; veriyi eğitim ve araştırma amacıyla kullanabiliriz, soru bankasını yayımlamayacağımız için sorun yok. Kural: Eedi NeurIPS verisi (soru resimleri dahil) yalnızca proje içinde kullanılır; türetilen hiçbir şey yayımlanmaz, Git'e konmaz, ekip dışıyla paylaşılmaz. `doc/veri_kaynaklari.md` güncellendi. Böylece 139 resimli kesir sorusu, eksik soruları tamamlamak için iç kaynak olarak yeniden seçenek oldu.
+
 ## 2026-11-25 — Eedi NeurIPS lisansı doğrulandı
 
 - **Sonuç:** Resmî sayfa (eedischool.com/projects/neurips-education-challenge) lisansı **CC BY-NC-ND 4.0** olarak veriyor. 24 Kasım kaydındaki "doğrulanamadı" notu artık geçersiz.

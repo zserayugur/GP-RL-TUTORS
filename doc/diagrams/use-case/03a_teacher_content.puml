@@ -1,0 +1,25 @@
+@startuml 03a_teacher_content
+!include ../style.iuml
+title Teacher / Researcher and Content Reviewer — Content
+left to right direction
+
+actor "Teacher /\nResearcher" as T
+actor "Content\nReviewer" as R
+
+rectangle "RL Fraction Tutor" {
+  usecase "UC-08\nUpload content" as UC08
+  usecase "UC-13\nEdit content" as UC13
+  usecase "UC-16\nTrack content status" as UC16
+  usecase "UC-17\nValidate content\nautomatically" as UC17 #F2F2F2
+  usecase "UC-09\nReview pending content" as UC09
+  usecase "UC-10\nApprove / reject content" as UC10
+}
+
+T -- UC08
+T -- UC13
+T -- UC16
+UC08 ..> UC17 : <<include>>
+UC13 ..> UC17 : <<include>>
+UC09 -- R
+UC10 -- R
+@enduml
